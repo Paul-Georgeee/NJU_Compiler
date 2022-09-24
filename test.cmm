@@ -1,13 +1,1 @@
-struct Complex{
-    float real, image;
-};
-
-int main()
-{
-    struct Complex x;
-    y.image = 3.5;
-}
-
-int i = 0123;
-int j = 0x3Fa;
-int k = 009, l = 0xfgh;
+int1 + 2 * 3 + 5 / 5 + 1.23 - 0.23 + 0xff - 011 
