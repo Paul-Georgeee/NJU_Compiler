@@ -3,11 +3,11 @@
     int has_error = 0;
     int yycolumn = 1;
     
-    #define YY_USER_ACTION \
-        yylloc.first_line = yylloc.last_line = yylineno;\
-        yylloc.first_column = yycolumn;\
-        yylloc.last_column = yycolumn + yyleng - 1;\
-        yycolumn += yyleng;
+    // #define YY_USER_ACTION \
+    //     yylloc.first_line = yylloc.last_line = yylineno;\
+    //     yylloc.first_column = yycolumn;\
+    //     yylloc.last_column = yycolumn + yyleng - 1;\
+    //     yycolumn += yyleng;
 %}
 digit [0-9]
 nondigit [^0-9]
@@ -88,7 +88,8 @@ TYPE int|float
     }
 {letter}({letter}|{digit})* {
     has_error = 0;
-    printf("ID %s\n", yytext);
+   // printf("ID %s\n", yytext);
+    return ID;
     }
 {SEMI} {
     has_error = 0;
@@ -96,27 +97,30 @@ TYPE int|float
     }
 {COMMA} {
     has_error = 0;
-    printf("COMMA\n");
+    //printf("COMMA\n");
+    return COMMA;
     }
 {ASSIGNOP} {
     has_error = 0;
-    printf("ASSIGNOP\n");
+    // printf("ASSIGNOP\n");
+    return ASSIGNOP;
     }
 {RELOP} {
     has_error = 0;
-    printf("RELOP\n");
+    return RELOP;
+    // printf("RELOP\n");
     }
 {PLUS} {//printf("PLUS\n"); 
     has_error = 0;
-    return ADD;
+    return PLUS;
     }
 {MINUS} {//printf("MINUS\n");
     has_error = 0;
-    return SUB;
+    return MINUS;
     }
 {STAR} {//printf("STAR\n");
     has_error = 0;
-    return MUL;
+    return STAR;
     }
 {DIV} {//printf("DIV\n");
     has_error = 0;    
@@ -124,43 +128,45 @@ TYPE int|float
     }
 {AND} {
     has_error = 0;
-    printf("AND\n");
+    return AND;
     }
 {OR} {
     has_error = 0;
-    printf("OR\n");
+    return OR;
     }
 {DOT} {
     has_error = 0;
-    printf("DOT\n");
+    return DOT;
     }
 {NOT} {
     has_error = 0;
-    printf("NOT\n");
+    return NOT;
     }
 {LP} {
     has_error = 0;
-    printf("LP\n");
+    // printf("LP\n");
+    return LP;
     }
 {RP} {
     has_error = 0;
-    printf("RP\n");
+    // printf("RP\n");
+    return RP;
     }
 {LB} {
     has_error = 0;
-    printf("LB\n");
+    return LB;
     }
 {RB} {
     has_error = 0;
-    printf("RB\n");
+    return RB;
     }
 {LC} {
     has_error = 0;
-    printf("LC\n");
+    return LC;
     }
 {RC} {
     has_error = 0;
-    printf("RC\n");
+    return RC;
     }
 
 " " {has_error = 0;}
