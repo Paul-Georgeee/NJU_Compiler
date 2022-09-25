@@ -175,7 +175,19 @@ TYPE int|float
     has_error = 0;
     return RC;
     }
-
+"//" {
+    char c = input();
+    while(c != '\n') c = input();
+    yycolumn = 1;
+    }
+"/*" {
+    char last = 0, now = input();
+    while(last != '*' && now != '/')
+    {
+        last = now;
+        now = input();
+    }
+}
 " " {has_error = 0;}
 \n {yycolumn = 1;}
 . {

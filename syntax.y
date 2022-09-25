@@ -25,7 +25,7 @@
 %left RELOP
 %left PLUS MINUS
 %left STAR DIV
-%right NOT
+%right NOT NEG
 %left LP RP LB RB DOT
 
 %nonassoc LOWER_THAN_ELSE
@@ -127,7 +127,7 @@ Exp : Exp ASSIGNOP Exp {}
     | Exp STAR Exp {}
     | Exp DIV Exp {}
     | LP Exp RP {}
-    | MINUS Exp
+    | MINUS Exp %prec NEG
     | NOT Exp
     | ID LP Args RP
     | ID LP RP
@@ -139,7 +139,6 @@ Exp : Exp ASSIGNOP Exp {}
     | ID
     | INT {}
     | FLOAT {}
-    | Exp Exp error {printError(@2.first_line, @2.first_column, "Error in Exp");}
     ;
 Args : Exp COMMA Args
     | Exp

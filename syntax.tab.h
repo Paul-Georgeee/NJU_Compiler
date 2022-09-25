@@ -71,12 +71,13 @@ extern int yydebug;
     STAR = 277,
     DIV = 278,
     NOT = 279,
-    LP = 280,
-    RP = 281,
-    LB = 282,
-    RB = 283,
-    DOT = 284,
-    LOWER_THAN_ELSE = 285
+    NEG = 280,
+    LP = 281,
+    RP = 282,
+    LB = 283,
+    RB = 284,
+    DOT = 285,
+    LOWER_THAN_ELSE = 286
   };
 #endif
 
@@ -90,7 +91,7 @@ union YYSTYPE
     float type_float;
     double type_double;
 
-#line 94 "syntax.tab.h"
+#line 95 "syntax.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
