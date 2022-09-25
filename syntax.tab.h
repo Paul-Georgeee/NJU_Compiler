@@ -75,7 +75,8 @@ extern int yydebug;
     RP = 281,
     LB = 282,
     RB = 283,
-    DOT = 284
+    DOT = 284,
+    LOWER_THAN_ELSE = 285
   };
 #endif
 
@@ -83,13 +84,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 11 "syntax.y"
+#line 10 "syntax.y"
 
     int type_int;
     float type_float;
     double type_double;
 
-#line 93 "syntax.tab.h"
+#line 94 "syntax.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

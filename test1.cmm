@@ -43,6 +43,19 @@ int main()
 {
     float i = 1.05e;
 }
-int i = 0123;
-int j = 0x3Fa;
-int k = 009, l = 0xfgh;
+
+int main()
+{
+    if (i
+    {
+        a;
+    }
+    else
+    {
+        b;
+    }
+    else
+    {
+        c;
+    }
+}
