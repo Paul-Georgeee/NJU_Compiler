@@ -3,11 +3,11 @@
     int has_error = 0;
     int yycolumn = 1;
     
-    // #define YY_USER_ACTION \
-    //     yylloc.first_line = yylloc.last_line = yylineno;\
-    //     yylloc.first_column = yycolumn;\
-    //     yylloc.last_column = yycolumn + yyleng - 1;\
-    //     yycolumn += yyleng;
+    #define YY_USER_ACTION \
+        yylloc.first_line = yylloc.last_line = yylineno;\
+        yylloc.first_column = yycolumn;\
+        yylloc.last_column = yycolumn + yyleng - 1;\
+        yycolumn += yyleng;
 %}
 digit [0-9]
 nondigit [^0-9]
@@ -44,27 +44,33 @@ TYPE int|float
 %%
 {STRUCT} {
     has_error = 0;
-    printf("STRUCT\n");
+    // printf("STRUCT\n");
+    return STRUCT;
     }
 {RETURN} {
     has_error = 0;
-    printf("RETURN\n");
+    // printf("RETURN\n");
+    return RETURN;
     }
 {IF} {
     has_error = 0;
-    printf("IF\n");
+    // printf("IF\n");
+    return IF;
     }
 {ELSE} {
     has_error = 0;
-    printf("ELSE\n");
+    // printf("ELSE\n");
+    return ELSE;
     }
 {WHILE} {
     has_error = 0;
-    printf("WHILE\n");
+    // printf("WHILE\n");
+    return WHILE;
     }
 {TYPE} {
     has_error = 0;
-    printf("TYPE\n");
+    // printf("TYPE\n");
+    return TYPE;
     }
 (({digit_z}{digit}*|0)\.{digit}+)|({digit}*\.{digit}*[Ee][+-]?{digit}+) {
     has_error = 0;
@@ -93,7 +99,8 @@ TYPE int|float
     }
 {SEMI} {
     has_error = 0;
-    printf("SEMI\n");
+    // printf("SEMI\n");
+    return SEMI;
     }
 {COMMA} {
     has_error = 0;
@@ -177,6 +184,5 @@ TYPE int|float
         printf("Error type A at line %d: unexpected token %s\n", yylineno, yytext);
         has_error = 1;
     }
-    printf("error\n");
     }
 %%

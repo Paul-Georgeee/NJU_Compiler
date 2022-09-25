@@ -1,5 +1,4 @@
 #include<stdio.h>
-
 extern FILE* yyin;
 extern int yydebug;
 int main(int argc, char ** argv)
@@ -11,6 +10,7 @@ int main(int argc, char ** argv)
         perror(argv[1]);
         return 1;
     }
+    yydebug = 0;
     yyrestart(fp);
     yyparse();
     return 0;
