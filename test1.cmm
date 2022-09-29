@@ -59,3 +59,23 @@ int main()
         c;
     }
 }
+
+int main()
+{
+    /*
+    comment
+    /*
+    nested comment
+    */
+    */
+    int i = 1;
+}
+
+int main()
+{
+    // line comment
+    /*
+    block comment
+    */
+    int i = 1;
+}

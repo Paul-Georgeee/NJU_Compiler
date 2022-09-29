@@ -1,11 +1,12 @@
 #include<stdio.h>
 extern FILE* yyin;
 int yydebug;
+int wrong;
 void yyrestart(FILE * fp);
 void yyparse();
 struct TreeNode;
 
-void print(struct TreeNode *p);
+void printTree(struct TreeNode *p, int level);
 struct TreeNode *root;
 
 int main(int argc, char ** argv)
@@ -20,6 +21,7 @@ int main(int argc, char ** argv)
     yydebug = 1;
     yyrestart(fp);
     yyparse();
-    print(root);
+    if(wrong == 0)
+        printTree(root, 0);
     return 0;
 }

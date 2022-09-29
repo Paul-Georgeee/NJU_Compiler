@@ -1,5 +1,6 @@
 %{
     #include "syntax.tab.h"
+    extern int wrong;
     int has_error = 0;
     int yycolumn = 1;
     struct TreeNode;
@@ -45,6 +46,7 @@ TYPE int|float
 %option yylineno
 
 %%
+
 {STRUCT} {
     has_error = 0;
     yylval = init_node("STRUCT");
@@ -133,7 +135,7 @@ TYPE int|float
     }
 {MINUS} {
     has_error = 0;
-    yylval = init_node("MINUX");
+    yylval = init_node("MINUS");
     return MINUS;
     }
 {STAR} {
@@ -198,12 +200,12 @@ TYPE int|float
     }
 "//" {
     char c = input();
-    while(c != '\n') c = input();
+    while(c != '\n') {c = input();}
     yycolumn = 1;
     }
 "/*" {
     char last = 0, now = input();
-    while(last != '*' && now != '/')
+    while((last == '*' && now == '/') == 0)
     {
         last = now;
         now = input();
@@ -212,17 +214,20 @@ TYPE int|float
 " " {has_error = 0;}
 \n {yycolumn = 1;}
 . {
+    wrong = 1;
     if(has_error == 0)
     {
-        printf("Error type A at line %d: unexpected token %s\n", yylineno, yytext);
+        fprintf(stderr, "Error type A at line %d: unexpected token %s\n", yylineno, yytext);
         has_error = 1;
     }
+    
 }
 %%
 
 struct TreeNode * init_node(char * name)
 {
     struct TreeNode *p = (struct TreeNode *)malloc(sizeof(struct TreeNode));
+    memset((void *)p, 0, sizeof(struct TreeNode));
     strcpy(p->name, name);
     return p;
 }

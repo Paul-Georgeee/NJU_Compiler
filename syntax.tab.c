@@ -72,6 +72,8 @@
     void yyerror(const char *msg);
     #define YYSTYPE struct TreeNode*
 
+    int wrong = 0;
+
     struct TreeNode{
         char name[32];
         union{
@@ -85,16 +87,17 @@
     };
 
     struct TreeNode * root;
-    struct TreeNode * matchRule(char *father, struct TreeNode* child[], int num);
+    struct TreeNode * matchRule(char *father, struct TreeNode* child[], int num, int _lineno);
 
     #include "lex.yy.c"
     
     void printError(int line, int col, char *descprition)
     {
-        printf("Error Type B at Line %d Col %d: %s\n", line, col, descprition);
+        wrong = 1;
+        printf("Error Type B at Line %d: %s\n", line, descprition);
     }
 
-#line 98 "syntax.tab.c"
+#line 101 "syntax.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -510,16 +513,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  13
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   335
+#define YYLAST   343
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  33
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  22
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  77
+#define YYNRULES  78
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  139
+#define YYNSTATES  140
 
 #define YYUNDEFTOK  2
 #define YYMAXUTOK   287
@@ -569,14 +572,14 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    50,    50,    56,    63,    65,    70,    75,    79,    84,
-      89,    92,    96,   103,   107,   112,   125,   130,   134,   138,
-     144,   149,   154,   157,   162,   167,   170,   175,   181,   187,
-     193,   201,   203,   208,   213,   218,   222,   227,   231,   232,
-     234,   238,   239,   241,   243,   248,   249,   252,   255,   263,
-     266,   270,   274,   277,   281,   287,   292,   298,   303,   308,
-     313,   318,   323,   328,   333,   338,   343,   348,   353,   358,
-     363,   367,   369,   373,   377,   381,   388,   392
+       0,    51,    51,    57,    61,    63,    68,    74,    78,    84,
+      89,    92,    96,   103,   107,   112,   117,   122,   126,   130,
+     136,   141,   146,   152,   157,   162,   168,   173,   179,   185,
+     192,   197,   199,   204,   210,   215,   219,   225,   229,   233,
+     238,   242,   246,   251,   256,   261,   265,   270,   279,   282,
+     287,   290,   294,   299,   302,   306,   312,   317,   323,   328,
+     333,   338,   343,   348,   353,   358,   363,   368,   373,   378,
+     383,   388,   392,   397,   401,   405,   409,   416,   420
 };
 #endif
 
@@ -608,12 +611,12 @@ static const yytype_int16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF (-81)
+#define YYPACT_NINF (-74)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-50)
+#define YYTABLE_NINF (-51)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -622,20 +625,20 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-      67,     4,   -81,    13,    16,   -81,    67,    34,   -81,   -81,
-      22,    44,   -81,   -81,   -81,   -81,    47,    66,     0,    74,
-      90,     2,   -81,    78,     3,    55,   -81,    75,    78,    83,
-      55,    69,   -81,    78,    71,    91,   -81,   -81,    98,    99,
-      80,   -81,    29,    95,    92,   -81,   -81,   -81,    84,   -81,
-      65,   -81,   -81,   111,   283,     1,   132,    14,   104,   -81,
-     -81,   283,   283,   283,   -81,   124,    80,   167,   283,   -81,
-      78,   -81,   -81,   182,   110,   121,   -81,   116,   125,   268,
-     130,    23,   197,   -81,   -81,   -81,   283,   283,   283,   283,
-     283,   283,   283,   283,   141,   131,   257,   -81,   -81,   105,
-     105,   212,   105,   105,   227,   -81,   152,   123,   -81,   257,
-     292,   304,    94,   130,   130,    23,    23,   119,   242,   -81,
-     154,   156,   105,   -81,   -81,   105,   283,   -81,   -81,   -81,
-     105,   105,   159,   -81,   -81,   -81,   -81,   105,   -81
+     139,    -8,   -74,    -3,    29,   -74,   139,    42,   -74,   -74,
+      23,    57,   -74,   -74,   -74,   -74,    22,    54,    -9,    74,
+     106,    46,   -74,    70,     3,    71,   -74,    75,    70,    79,
+      71,    62,   -74,    70,    63,    80,   -74,   -74,    65,    69,
+      96,   -74,    -5,    91,    97,   -74,   -74,   -74,    84,   -74,
+      37,   -74,   -74,    95,   299,    15,   114,    16,    93,   -74,
+     -74,   299,   -74,   299,   299,   -74,   119,    96,   183,   299,
+     -74,    70,   -74,   -74,   198,   103,   137,   -74,   104,   141,
+     284,   -10,    39,   213,   -74,   -74,   -74,   299,   299,   299,
+     299,   299,   299,   299,   299,   157,   110,   273,   -74,   -74,
+     121,   121,   228,   121,   121,   243,   -74,   168,   105,   -74,
+     273,   308,    40,   312,   -10,   -10,    39,    39,   111,   258,
+     -74,   128,   143,   121,   -74,   -74,   121,   299,   -74,   -74,
+     -74,   121,   121,   148,   -74,   -74,   -74,   -74,   121,   -74
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -647,32 +650,32 @@ static const yytype_int8 yydefact[] =
       19,     0,    16,     1,     3,     7,    20,     6,    11,     0,
        0,     0,     5,     0,     0,     0,     9,     0,     0,     0,
        0,     0,    24,     0,     0,    27,    20,    12,     0,     0,
-       0,    52,    55,    51,    53,    15,    48,    25,    28,    23,
-       0,    22,    21,     0,    36,     0,     0,     0,    73,    74,
-      75,     0,     0,     0,    34,     0,     0,    33,     0,    50,
-       0,    26,    47,     0,     0,     0,    43,     0,     0,     0,
-      66,    67,     0,    29,    30,    32,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,    56,    54,    35,     0,
-       0,     0,     0,     0,     0,    69,    77,     0,    65,    57,
-      59,    58,    60,    61,    62,    63,    64,     0,     0,    72,
-      38,    39,     0,    45,    46,     0,     0,    68,    71,    70,
-       0,     0,    37,    44,    76,    41,    42,     0,    40
+       0,    53,    56,    52,    54,    15,    49,    25,    28,    23,
+       0,    22,    21,     0,    36,     0,     0,     0,    74,    75,
+      76,     0,    47,     0,     0,    34,     0,     0,    33,     0,
+      51,     0,    26,    48,     0,     0,     0,    43,     0,     0,
+       0,    67,    68,     0,    29,    30,    32,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    57,    55,    35,
+       0,     0,     0,     0,     0,     0,    70,    78,     0,    66,
+      58,    60,    59,    61,    62,    63,    64,    65,     0,     0,
+      73,    38,    39,     0,    45,    46,     0,     0,    69,    72,
+      71,     0,     0,    37,    44,    77,    41,    42,     0,    40
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -81,   -81,   161,   -81,   135,     5,   -81,   -81,   -81,   -27,
-     -81,   127,   -81,   160,   112,   -80,    19,   -81,   122,   -81,
-     -54,    56
+     -74,   -74,   154,   -74,   122,     2,   -74,   -74,   -74,   -27,
+     -74,   115,   -74,   142,   100,   -73,    21,   -74,    98,   -74,
+     -54,    43
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
       -1,     4,     5,     6,    17,    28,     8,    11,    12,    18,
-      19,    34,    35,    64,    65,    66,    29,    30,    43,    44,
-      67,   107
+      19,    34,    35,    65,    66,    67,    29,    30,    43,    44,
+      68,   108
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -680,78 +683,80 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-      73,    42,    74,    31,    38,     7,    48,    80,    81,    82,
-       2,     7,    23,     3,    96,    77,    13,     9,    39,   120,
-     121,   101,   123,   124,   104,   106,    33,    10,    75,    24,
-      32,   -17,   109,   110,   111,   112,   113,   114,   115,   116,
-     118,    78,   132,    42,    40,   133,    68,    15,    16,    46,
-     135,   136,    94,    20,    95,    33,    27,   138,    24,   -49,
-     -49,   -49,   -49,     2,   -49,   -49,     3,    -4,     1,   -49,
-     -49,   -49,   106,     2,    21,     2,     3,   -49,     3,    22,
-     -49,    53,   -49,    25,    54,    55,    56,    57,    41,    25,
-     -31,    27,    36,    45,    58,    59,    60,    47,     2,    49,
-     -49,     3,    61,    50,    70,    62,    53,    63,    69,    54,
-      55,    56,    57,    24,    25,    90,    91,    92,    93,    58,
-      59,    60,   100,    94,    72,    95,   103,    61,    51,    52,
-      62,    79,    63,    76,    83,    58,    59,    60,    99,    58,
-      59,    60,   117,    61,   102,   119,    62,    61,    63,   128,
-      62,   127,    63,    92,    93,    58,    59,    60,    37,    94,
-     130,    95,   131,    61,   126,   137,    62,    14,    63,    86,
-      87,    88,    89,    90,    91,    92,    93,    71,    84,    26,
-      85,    94,   134,    95,    86,    87,    88,    89,    90,    91,
-      92,    93,    97,     0,     0,    98,    94,     0,    95,    86,
-      87,    88,    89,    90,    91,    92,    93,     0,     0,     0,
-       0,    94,     0,    95,    86,    87,    88,    89,    90,    91,
-      92,    93,     0,     0,     0,   108,    94,     0,    95,    86,
-      87,    88,    89,    90,    91,    92,    93,     0,     0,     0,
-     122,    94,     0,    95,    86,    87,    88,    89,    90,    91,
-      92,    93,     0,     0,     0,   125,    94,     0,    95,    86,
-      87,    88,    89,    90,    91,    92,    93,     0,     0,     0,
-       0,    94,   129,    95,    86,    87,    88,    89,    90,    91,
-      92,    93,    58,    59,    60,     0,    94,     0,    95,     0,
-      61,     0,     0,    62,     0,    63,   105,    58,    59,    60,
-       0,     0,     0,     0,     0,    61,     0,     0,    62,     0,
-      63,    88,    89,    90,    91,    92,    93,     0,     0,     0,
-       0,    94,     0,    95,    89,    90,    91,    92,    93,     0,
-       0,     0,     0,    94,     0,    95
+      74,    42,     7,    23,    38,     9,    48,    81,     7,    82,
+      83,    10,    69,    93,    94,    97,    75,    78,    39,    95,
+      24,    96,   102,    33,    24,   105,   107,   121,   122,    13,
+     124,   125,   -17,   110,   111,   112,   113,   114,   115,   116,
+     117,   119,    76,    79,    42,     2,    40,    31,     3,    21,
+     133,    46,    33,   134,     2,    15,    16,     3,   136,   137,
+      90,    91,    92,    93,    94,   139,    20,    22,    95,    95,
+      96,    96,    27,   107,    32,   -50,   -50,   -50,   -50,     2,
+     -50,   -50,     3,    25,    36,   -50,   -50,   -50,    41,    45,
+      47,    49,    50,   -50,   -50,    51,   -50,    53,   -50,    52,
+      54,    55,    56,    57,    70,    25,   -31,    27,    73,    71,
+      58,    59,    60,    24,     2,    77,   -50,     3,    61,    62,
+      80,    63,    53,    64,   120,    54,    55,    56,    57,    84,
+      25,   100,   103,   128,   131,    58,    59,    60,   101,    -4,
+       1,   129,   104,    61,    62,    37,    63,     2,    64,   132,
+       3,    58,    59,    60,   138,    58,    59,    60,   118,    61,
+      14,    26,    63,    61,    64,    72,    63,    85,    64,    98,
+     135,    58,    59,    60,     0,     0,     0,     0,     0,    61,
+     127,     0,    63,     0,    64,    87,    88,    89,    90,    91,
+      92,    93,    94,     0,     0,     0,    86,    95,     0,    96,
+      87,    88,    89,    90,    91,    92,    93,    94,     0,     0,
+       0,    99,    95,     0,    96,    87,    88,    89,    90,    91,
+      92,    93,    94,     0,     0,     0,     0,    95,     0,    96,
+      87,    88,    89,    90,    91,    92,    93,    94,     0,     0,
+       0,   109,    95,     0,    96,    87,    88,    89,    90,    91,
+      92,    93,    94,     0,     0,     0,   123,    95,     0,    96,
+      87,    88,    89,    90,    91,    92,    93,    94,     0,     0,
+       0,   126,    95,     0,    96,    87,    88,    89,    90,    91,
+      92,    93,    94,     0,     0,     0,     0,    95,   130,    96,
+      87,    88,    89,    90,    91,    92,    93,    94,    58,    59,
+      60,     0,    95,     0,    96,     0,    61,     0,     0,    63,
+       0,    64,   106,    58,    59,    60,     0,     0,     0,     0,
+       0,    61,     0,     0,    63,     0,    64,    89,    90,    91,
+      92,    93,    94,    91,    92,    93,    94,    95,     0,    96,
+       0,    95,     0,    96
 };
 
 static const yytype_int16 yycheck[] =
 {
-      54,    28,     1,     1,     1,     0,    33,    61,    62,    63,
-       8,     6,    12,    11,    68,     1,     0,    13,    15,    99,
-     100,    75,   102,   103,    78,    79,    21,    14,    27,    29,
-      28,     9,    86,    87,    88,    89,    90,    91,    92,    93,
-      94,    27,   122,    70,    25,   125,    17,    13,    14,    30,
-     130,   131,    29,     9,    31,    50,     1,   137,    29,     4,
-       5,     6,     7,     8,     9,    10,    11,     0,     1,    14,
-      15,    16,   126,     8,    27,     8,    11,    22,    11,    13,
-      25,     1,    27,     9,     4,     5,     6,     7,    13,     9,
-      10,     1,    14,    10,    14,    15,    16,    28,     8,    28,
-      10,    11,    22,    12,    12,    25,     1,    27,    13,     4,
-       5,     6,     7,    29,     9,    21,    22,    23,    24,    14,
-      15,    16,     1,    29,    13,    31,     1,    22,    30,    30,
-      25,    27,    27,     1,    10,    14,    15,    16,    28,    14,
-      15,    16,     1,    22,    28,    14,    25,    22,    27,    30,
-      25,    28,    27,    23,    24,    14,    15,    16,    23,    29,
-       6,    31,     6,    22,    12,     6,    25,     6,    27,    17,
-      18,    19,    20,    21,    22,    23,    24,    50,    66,    19,
-      13,    29,   126,    31,    17,    18,    19,    20,    21,    22,
-      23,    24,    70,    -1,    -1,    13,    29,    -1,    31,    17,
-      18,    19,    20,    21,    22,    23,    24,    -1,    -1,    -1,
-      -1,    29,    -1,    31,    17,    18,    19,    20,    21,    22,
-      23,    24,    -1,    -1,    -1,    28,    29,    -1,    31,    17,
-      18,    19,    20,    21,    22,    23,    24,    -1,    -1,    -1,
-      28,    29,    -1,    31,    17,    18,    19,    20,    21,    22,
-      23,    24,    -1,    -1,    -1,    28,    29,    -1,    31,    17,
-      18,    19,    20,    21,    22,    23,    24,    -1,    -1,    -1,
-      -1,    29,    30,    31,    17,    18,    19,    20,    21,    22,
-      23,    24,    14,    15,    16,    -1,    29,    -1,    31,    -1,
-      22,    -1,    -1,    25,    -1,    27,    28,    14,    15,    16,
-      -1,    -1,    -1,    -1,    -1,    22,    -1,    -1,    25,    -1,
-      27,    19,    20,    21,    22,    23,    24,    -1,    -1,    -1,
-      -1,    29,    -1,    31,    20,    21,    22,    23,    24,    -1,
-      -1,    -1,    -1,    29,    -1,    31
+      54,    28,     0,    12,     1,    13,    33,    61,     6,    63,
+      64,    14,    17,    23,    24,    69,     1,     1,    15,    29,
+      29,    31,    76,    21,    29,    79,    80,   100,   101,     0,
+     103,   104,     9,    87,    88,    89,    90,    91,    92,    93,
+      94,    95,    27,    27,    71,     8,    25,     1,    11,    27,
+     123,    30,    50,   126,     8,    13,    14,    11,   131,   132,
+      20,    21,    22,    23,    24,   138,     9,    13,    29,    29,
+      31,    31,     1,   127,    28,     4,     5,     6,     7,     8,
+       9,    10,    11,     9,    14,    14,    15,    16,    13,    10,
+      28,    28,    12,    22,    23,    30,    25,     1,    27,    30,
+       4,     5,     6,     7,    13,     9,    10,     1,    13,    12,
+      14,    15,    16,    29,     8,     1,    10,    11,    22,    23,
+      27,    25,     1,    27,    14,     4,     5,     6,     7,    10,
+       9,    28,    28,    28,     6,    14,    15,    16,     1,     0,
+       1,    30,     1,    22,    23,    23,    25,     8,    27,     6,
+      11,    14,    15,    16,     6,    14,    15,    16,     1,    22,
+       6,    19,    25,    22,    27,    50,    25,    67,    27,    71,
+     127,    14,    15,    16,    -1,    -1,    -1,    -1,    -1,    22,
+      12,    -1,    25,    -1,    27,    17,    18,    19,    20,    21,
+      22,    23,    24,    -1,    -1,    -1,    13,    29,    -1,    31,
+      17,    18,    19,    20,    21,    22,    23,    24,    -1,    -1,
+      -1,    13,    29,    -1,    31,    17,    18,    19,    20,    21,
+      22,    23,    24,    -1,    -1,    -1,    -1,    29,    -1,    31,
+      17,    18,    19,    20,    21,    22,    23,    24,    -1,    -1,
+      -1,    28,    29,    -1,    31,    17,    18,    19,    20,    21,
+      22,    23,    24,    -1,    -1,    -1,    28,    29,    -1,    31,
+      17,    18,    19,    20,    21,    22,    23,    24,    -1,    -1,
+      -1,    28,    29,    -1,    31,    17,    18,    19,    20,    21,
+      22,    23,    24,    -1,    -1,    -1,    -1,    29,    30,    31,
+      17,    18,    19,    20,    21,    22,    23,    24,    14,    15,
+      16,    -1,    29,    -1,    31,    -1,    22,    -1,    -1,    25,
+      -1,    27,    28,    14,    15,    16,    -1,    -1,    -1,    -1,
+      -1,    22,    -1,    -1,    25,    -1,    27,    19,    20,    21,
+      22,    23,    24,    21,    22,    23,    24,    29,    -1,    31,
+      -1,    29,    -1,    31
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -764,14 +769,14 @@ static const yytype_int8 yystos[] =
       50,     1,    28,    38,    44,    45,    14,    37,     1,    15,
       49,    13,    42,    51,    52,    10,    49,    28,    42,    28,
       12,    30,    30,     1,     4,     5,     6,     7,    14,    15,
-      16,    22,    25,    27,    46,    47,    48,    53,    17,    13,
-      12,    44,    13,    53,     1,    27,     1,     1,    27,    27,
-      53,    53,    53,    10,    47,    13,    17,    18,    19,    20,
-      21,    22,    23,    24,    29,    31,    53,    51,    13,    28,
-       1,    53,    28,     1,    53,    28,    53,    54,    28,    53,
-      53,    53,    53,    53,    53,    53,    53,     1,    53,    14,
-      48,    48,    28,    48,    48,    28,    12,    28,    30,    30,
-       6,     6,    48,    48,    54,    48,    48,     6,    48
+      16,    22,    23,    25,    27,    46,    47,    48,    53,    17,
+      13,    12,    44,    13,    53,     1,    27,     1,     1,    27,
+      27,    53,    53,    53,    10,    47,    13,    17,    18,    19,
+      20,    21,    22,    23,    24,    29,    31,    53,    51,    13,
+      28,     1,    53,    28,     1,    53,    28,    53,    54,    28,
+      53,    53,    53,    53,    53,    53,    53,    53,     1,    53,
+      14,    48,    48,    28,    48,    48,    28,    12,    28,    30,
+      30,     6,     6,    48,    48,    54,    48,    48,     6,    48
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
@@ -781,10 +786,10 @@ static const yytype_int8 yyr1[] =
       36,    37,    37,    38,    38,    39,    39,    40,    40,    41,
       42,    42,    42,    43,    43,    43,    44,    44,    45,    46,
       47,    47,    48,    48,    48,    48,    48,    48,    48,    48,
-      48,    48,    48,    48,    48,    48,    48,    48,    49,    49,
-      50,    50,    50,    51,    51,    52,    52,    53,    53,    53,
+      48,    48,    48,    48,    48,    48,    48,    48,    48,    49,
+      49,    50,    50,    50,    51,    51,    52,    52,    53,    53,
       53,    53,    53,    53,    53,    53,    53,    53,    53,    53,
-      53,    53,    53,    53,    53,    53,    54,    54
+      53,    53,    53,    53,    53,    53,    53,    54,    54
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -794,10 +799,10 @@ static const yytype_int8 yyr2[] =
        2,     1,     3,     1,     1,     5,     2,     1,     0,     1,
        1,     4,     4,     4,     3,     4,     3,     1,     2,     4,
        2,     0,     2,     1,     1,     3,     1,     5,     4,     4,
-       7,     6,     6,     2,     5,     4,     4,     2,     2,     0,
-       3,     2,     2,     1,     3,     1,     3,     3,     3,     3,
-       3,     3,     3,     3,     3,     3,     2,     2,     4,     3,
-       4,     4,     3,     1,     1,     1,     3,     1
+       7,     6,     6,     2,     5,     4,     4,     1,     2,     2,
+       0,     3,     2,     2,     1,     3,     1,     3,     3,     3,
+       3,     3,     3,     3,     3,     3,     3,     2,     2,     4,
+       3,     4,     4,     3,     1,     1,     1,     3,     1
 };
 
 
@@ -1588,649 +1593,682 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 50 "syntax.y"
+#line 51 "syntax.y"
                      {
         struct TreeNode * child[1] = {yyvsp[0]};
-        yyval = matchRule("Program", child, 1);
+        yyval = matchRule("Program", child, 1, (yylsp[0]).first_line);
         root = yyval;
     }
-#line 1598 "syntax.tab.c"
+#line 1603 "syntax.tab.c"
     break;
 
   case 3:
-#line 56 "syntax.y"
+#line 57 "syntax.y"
                                {
         struct TreeNode * child[2] = {yyvsp[-1], yyvsp[0]};
-        if(yyvsp[0] == NULL)
-            yyval = matchRule("ExtDefList", child, 1);
-        else
-            yyval = matchRule("ExtDefList", child, 2);
+        yyval = matchRule("ExtDefList", child, 2, (yylsp[-1]).first_line);
     }
-#line 1610 "syntax.tab.c"
+#line 1612 "syntax.tab.c"
     break;
 
   case 4:
-#line 63 "syntax.y"
+#line 61 "syntax.y"
              {yyval = NULL;}
-#line 1616 "syntax.tab.c"
+#line 1618 "syntax.tab.c"
     break;
 
   case 5:
-#line 65 "syntax.y"
+#line 63 "syntax.y"
                                    {
         struct TreeNode * child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("ExtDef", child, 3);
+        yyval = matchRule("ExtDef", child, 3, (yylsp[-2]).first_line);
     }
-#line 1625 "syntax.tab.c"
+#line 1627 "syntax.tab.c"
     break;
 
   case 6:
-#line 70 "syntax.y"
+#line 68 "syntax.y"
                                            {
         printError((yylsp[0]).first_line, (yylsp[0]).first_column, "Miss \";\" in ExtDef");
+        yyval = NULL;
         YYERROR;
     }
-#line 1634 "syntax.tab.c"
+#line 1637 "syntax.tab.c"
     break;
 
   case 7:
-#line 75 "syntax.y"
+#line 74 "syntax.y"
                      {
         struct TreeNode * child[2] = {yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("ExtDef", child, 2);
+        yyval = matchRule("ExtDef", child, 2, (yylsp[-1]).first_line);
     }
-#line 1643 "syntax.tab.c"
+#line 1646 "syntax.tab.c"
     break;
 
   case 8:
-#line 79 "syntax.y"
+#line 78 "syntax.y"
                                 {
         printError((yylsp[0]).first_line, (yylsp[0]).first_column, "Miss \";\" in ExtDef");
+        yyval = NULL;
         YYERROR;
     }
-#line 1652 "syntax.tab.c"
+#line 1656 "syntax.tab.c"
     break;
 
   case 9:
 #line 84 "syntax.y"
                               {
         struct TreeNode * child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("ExtDef", child, 3);
+        yyval = matchRule("ExtDef", child, 3, (yylsp[-2]).first_line);
     }
-#line 1661 "syntax.tab.c"
+#line 1665 "syntax.tab.c"
     break;
 
   case 10:
 #line 89 "syntax.y"
-                 {}
-#line 1667 "syntax.tab.c"
+                 {yyval = NULL;}
+#line 1671 "syntax.tab.c"
     break;
 
   case 11:
 #line 92 "syntax.y"
                     {
         struct TreeNode * child[1] = {yyvsp[0]};
-        yyval = matchRule("ExtDecList", child, 1);
+        yyval = matchRule("ExtDecList", child, 1, (yylsp[0]).first_line);
     }
-#line 1676 "syntax.tab.c"
+#line 1680 "syntax.tab.c"
     break;
 
   case 12:
 #line 97 "syntax.y"
     {
         struct TreeNode * child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("ExtDecList", child, 3);
+        yyval = matchRule("ExtDecList", child, 3, (yylsp[-2]).first_line);
     }
-#line 1685 "syntax.tab.c"
+#line 1689 "syntax.tab.c"
     break;
 
   case 13:
 #line 103 "syntax.y"
                  {
         struct TreeNode * child[1] = {yyvsp[0]};
-        yyval = matchRule("Specifier", child, 1);
+        yyval = matchRule("Specifier", child, 1, (yylsp[0]).first_line);
     }
-#line 1694 "syntax.tab.c"
+#line 1698 "syntax.tab.c"
     break;
 
   case 14:
 #line 107 "syntax.y"
                       {
         struct TreeNode * child[1] = {yyvsp[0]};
-        yyval = matchRule("Specifier", child, 1);
+        yyval = matchRule("Specifier", child, 1, (yylsp[0]).first_line);
     }
-#line 1703 "syntax.tab.c"
+#line 1707 "syntax.tab.c"
     break;
 
   case 15:
 #line 112 "syntax.y"
                                               {
-        if(yyvsp[-3] == NULL)
-        {
-            struct TreeNode * child[4] = {yyvsp[-4], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-            yyval = matchRule("StructSpecifier", child, 4);
-        }
-        else
-        {
-            struct TreeNode * child[5] = {yyvsp[-4], yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-            yyval = matchRule("StructSpecifier", child, 5);            
-        }
-
+        struct TreeNode * child[5] = {yyvsp[-4], yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("StructSpecifier", child, 5, (yylsp[-4]).first_line);  
     }
-#line 1721 "syntax.tab.c"
+#line 1716 "syntax.tab.c"
     break;
 
   case 16:
-#line 125 "syntax.y"
+#line 117 "syntax.y"
                  {
         struct TreeNode * child[2] = {yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("StructSpecifier", child, 2);
+        yyval = matchRule("StructSpecifier", child, 2, (yylsp[-1]).first_line);
     }
-#line 1730 "syntax.tab.c"
+#line 1725 "syntax.tab.c"
     break;
 
   case 17:
-#line 130 "syntax.y"
+#line 122 "syntax.y"
             {
         struct TreeNode * child[1] = {yyvsp[0]};
-        yyval = matchRule("OptTag", child, 1);
+        yyval = matchRule("OptTag", child, 1, (yylsp[0]).first_line);
     }
-#line 1739 "syntax.tab.c"
+#line 1734 "syntax.tab.c"
     break;
 
   case 18:
-#line 134 "syntax.y"
+#line 126 "syntax.y"
             {
         yyval = NULL;
     }
-#line 1747 "syntax.tab.c"
+#line 1742 "syntax.tab.c"
     break;
 
   case 19:
-#line 138 "syntax.y"
+#line 130 "syntax.y"
          {
         struct TreeNode * child[1] = {yyvsp[0]};
-        yyval = matchRule("Tag", child, 1);
+        yyval = matchRule("Tag", child, 1, (yylsp[0]).first_line);
     }
-#line 1756 "syntax.tab.c"
+#line 1751 "syntax.tab.c"
     break;
 
   case 20:
-#line 144 "syntax.y"
+#line 136 "syntax.y"
             {
         struct TreeNode * child[1] = {yyvsp[0]};
-        yyval = matchRule("VacDec", child, 1);
+        yyval = matchRule("VacDec", child, 1, (yylsp[0]).first_line);
     }
-#line 1765 "syntax.tab.c"
+#line 1760 "syntax.tab.c"
     break;
 
   case 21:
-#line 149 "syntax.y"
+#line 141 "syntax.y"
                        {
         struct TreeNode * child[4] = {yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("VacDec", child, 4);
+        yyval = matchRule("VacDec", child, 4, (yylsp[-3]).first_line);
     }
-#line 1774 "syntax.tab.c"
+#line 1769 "syntax.tab.c"
     break;
 
   case 22:
-#line 154 "syntax.y"
-                         {printError((yylsp[-3]).first_line, (yylsp[-3]).first_column, "ERROR in VarDec");}
-#line 1780 "syntax.tab.c"
+#line 146 "syntax.y"
+                         {
+        printError((yylsp[-3]).first_line, (yylsp[-3]).first_column, "ERROR in VarDec");
+        yyval = NULL;
+    }
+#line 1778 "syntax.tab.c"
     break;
 
   case 23:
-#line 157 "syntax.y"
+#line 152 "syntax.y"
                           {
         struct TreeNode * child[4] = {yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("FunDec", child, 4);
+        yyval = matchRule("FunDec", child, 4, (yylsp[-3]).first_line);
     }
-#line 1789 "syntax.tab.c"
+#line 1787 "syntax.tab.c"
     break;
 
   case 24:
-#line 162 "syntax.y"
+#line 157 "syntax.y"
                {
         struct TreeNode * child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("FunDec", child, 3);
+        yyval = matchRule("FunDec", child, 3, (yylsp[-2]).first_line);
     }
-#line 1798 "syntax.tab.c"
+#line 1796 "syntax.tab.c"
     break;
 
   case 25:
-#line 167 "syntax.y"
-                     {printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in Func Args");}
-#line 1804 "syntax.tab.c"
+#line 162 "syntax.y"
+                     {
+        printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in Func Args");
+        yyval = NULL;
+    }
+#line 1805 "syntax.tab.c"
     break;
 
   case 26:
-#line 170 "syntax.y"
+#line 168 "syntax.y"
                                  {
         struct TreeNode * child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("VarList", child, 3);
+        yyval = matchRule("VarList", child, 3, (yylsp[-2]).first_line);
     }
-#line 1813 "syntax.tab.c"
+#line 1814 "syntax.tab.c"
     break;
 
   case 27:
-#line 175 "syntax.y"
+#line 173 "syntax.y"
                {
         struct TreeNode * child[1] = {yyvsp[0]};
-        yyval = matchRule("VarList", child, 1);
+        yyval = matchRule("VarList", child, 1, (yylsp[0]).first_line);
     }
-#line 1822 "syntax.tab.c"
+#line 1823 "syntax.tab.c"
     break;
 
   case 28:
-#line 181 "syntax.y"
+#line 179 "syntax.y"
                             {
         struct TreeNode *child[2] = {yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("ParamDec", child, 2);
+        yyval = matchRule("ParamDec", child, 2, (yylsp[-1]).first_line);
     }
-#line 1831 "syntax.tab.c"
+#line 1832 "syntax.tab.c"
     break;
 
   case 29:
-#line 187 "syntax.y"
+#line 185 "syntax.y"
                                {
         struct TreeNode *child[4] = {yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("CompSt", child, 4);
+        yyval = matchRule("CompSt", child, 4, (yylsp[-3]).first_line);
     }
-#line 1840 "syntax.tab.c"
+#line 1841 "syntax.tab.c"
     break;
 
   case 30:
-#line 193 "syntax.y"
+#line 192 "syntax.y"
                          {
         struct TreeNode *child[2] = {yyvsp[-1], yyvsp[0]};
-        if(yyvsp[0] == NULL)
-            yyval = matchRule("StmtList", child, 1);
-        else
-            yyval = matchRule("StmtList", child, 2);
+        yyval = matchRule("StmtList", child, 2, (yylsp[-1]).first_line);
     }
-#line 1852 "syntax.tab.c"
+#line 1850 "syntax.tab.c"
     break;
 
   case 31:
-#line 201 "syntax.y"
+#line 197 "syntax.y"
              {yyval = NULL;}
-#line 1858 "syntax.tab.c"
+#line 1856 "syntax.tab.c"
     break;
 
   case 32:
-#line 203 "syntax.y"
+#line 199 "syntax.y"
                 {
         struct TreeNode *child[2] = {yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Stmt", child, 2);
+        yyval = matchRule("Stmt", child, 2, (yylsp[-1]).first_line);
     }
-#line 1867 "syntax.tab.c"
+#line 1865 "syntax.tab.c"
     break;
 
   case 33:
-#line 208 "syntax.y"
+#line 204 "syntax.y"
                           {
         printError((yylsp[0]).first_line, (yylsp[0]).first_column, "Miss \";\" in Exp statement");
+        yyval = NULL;
         YYERROR;
         }
-#line 1876 "syntax.tab.c"
+#line 1875 "syntax.tab.c"
     break;
 
   case 34:
-#line 213 "syntax.y"
+#line 210 "syntax.y"
              {
         struct TreeNode *child[1] = {yyvsp[0]};
-        yyval = matchRule("Compst", child, 1);
+        yyval = matchRule("Compst", child, 1, (yylsp[0]).first_line);
     }
-#line 1885 "syntax.tab.c"
+#line 1884 "syntax.tab.c"
     break;
 
   case 35:
-#line 218 "syntax.y"
+#line 215 "syntax.y"
                       {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Stmt", child, 3);    
+        yyval = matchRule("Stmt", child, 3, (yylsp[-2]).first_line);    
     }
-#line 1894 "syntax.tab.c"
+#line 1893 "syntax.tab.c"
     break;
 
   case 36:
-#line 222 "syntax.y"
+#line 219 "syntax.y"
                              {
         printError((yylsp[0]).first_line, (yylsp[0]).first_column, "Miss \";\" in Return statement");
+        yyval = NULL;
         YYERROR;
     }
 #line 1903 "syntax.tab.c"
     break;
 
   case 37:
-#line 227 "syntax.y"
+#line 225 "syntax.y"
                                               {
         struct TreeNode *child[5] = {yyvsp[-4], yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Stmt", child, 5);   
+        yyval = matchRule("Stmt", child, 5, (yylsp[-4]).first_line);   
     }
 #line 1912 "syntax.tab.c"
     break;
 
   case 38:
-#line 231 "syntax.y"
-                                             {printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in if statement");}
-#line 1918 "syntax.tab.c"
+#line 229 "syntax.y"
+                                             {
+        printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in if statement");
+        yyval = NULL;
+    }
+#line 1921 "syntax.tab.c"
     break;
 
   case 39:
-#line 232 "syntax.y"
-                                              {printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in if statement");}
-#line 1924 "syntax.tab.c"
+#line 233 "syntax.y"
+                                              {
+        printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in if statement");
+        yyval = NULL;
+    }
+#line 1930 "syntax.tab.c"
     break;
 
   case 40:
-#line 234 "syntax.y"
+#line 238 "syntax.y"
                                   {
         struct TreeNode *child[7] = {yyvsp[-6], yyvsp[-5], yyvsp[-4], yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Stmt", child, 7);  
+        yyval = matchRule("Stmt", child, 7, (yylsp[-6]).first_line);  
     }
-#line 1933 "syntax.tab.c"
-    break;
-
-  case 41:
-#line 238 "syntax.y"
-                                 {printError((yylsp[-3]).first_line, (yylsp[-3]).first_column, "Error in if statement");}
 #line 1939 "syntax.tab.c"
     break;
 
+  case 41:
+#line 242 "syntax.y"
+                                 {
+        printError((yylsp[-3]).first_line, (yylsp[-3]).first_column, "Error in if statement");
+        yyval = NULL;
+    }
+#line 1948 "syntax.tab.c"
+    break;
+
   case 42:
-#line 239 "syntax.y"
-                                 {printError((yylsp[-3]).first_line, (yylsp[-3]).first_column, "Error in if statement");}
-#line 1945 "syntax.tab.c"
+#line 246 "syntax.y"
+                                 {
+        printError((yylsp[-3]).first_line, (yylsp[-3]).first_column, "Error in if statement");
+        yyval = NULL;
+    }
+#line 1957 "syntax.tab.c"
     break;
 
   case 43:
-#line 241 "syntax.y"
-                 {printError((yylsp[0]).first_line, (yylsp[0]).first_column, "unmatch if else");}
-#line 1951 "syntax.tab.c"
-    break;
-
-  case 44:
-#line 244 "syntax.y"
-    {
-        struct TreeNode *child[5] = {yyvsp[-4], yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Stmt", child, 5); 
+#line 251 "syntax.y"
+                 {
+        printError((yylsp[0]).first_line, (yylsp[0]).first_column, "unmatch if else");
+        yyval = NULL;
     }
-#line 1960 "syntax.tab.c"
-    break;
-
-  case 45:
-#line 248 "syntax.y"
-                          {printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in while");}
 #line 1966 "syntax.tab.c"
     break;
 
-  case 46:
-#line 249 "syntax.y"
-                          {printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in while");}
-#line 1972 "syntax.tab.c"
+  case 44:
+#line 257 "syntax.y"
+    {
+        struct TreeNode *child[5] = {yyvsp[-4], yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("Stmt", child, 5, (yylsp[-4]).first_line); 
+    }
+#line 1975 "syntax.tab.c"
     break;
 
-  case 48:
-#line 255 "syntax.y"
-                      {
-        struct TreeNode *child[2] = {yyvsp[-1], yyvsp[0]};
-        if(yyvsp[0] == NULL)
-            yyval = matchRule("DefList", child, 1);
-        else
-            yyval = matchRule("DefList", child, 2);
+  case 45:
+#line 261 "syntax.y"
+                          {
+        printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in while");
+        yyval = NULL;    
     }
 #line 1984 "syntax.tab.c"
     break;
 
+  case 46:
+#line 265 "syntax.y"
+                          {
+        printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in while");
+        yyval = NULL;
+    }
+#line 1993 "syntax.tab.c"
+    break;
+
+  case 47:
+#line 270 "syntax.y"
+                            {
+        printError((yylsp[0]).first_line, (yylsp[0]).first_column, "Error in statement");
+        yyval = NULL;
+        YYERROR;
+    }
+#line 2003 "syntax.tab.c"
+    break;
+
+  case 48:
+#line 279 "syntax.y"
+                 {yyval = NULL;}
+#line 2009 "syntax.tab.c"
+    break;
+
   case 49:
-#line 263 "syntax.y"
-             {yyval = NULL;}
-#line 1990 "syntax.tab.c"
+#line 282 "syntax.y"
+                      {
+        struct TreeNode *child[2] = {yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("DefList", child, 2, (yylsp[-1]).first_line);
+    }
+#line 2018 "syntax.tab.c"
     break;
 
   case 50:
-#line 266 "syntax.y"
-                             {
-        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Def", child, 3);
-    }
-#line 1999 "syntax.tab.c"
+#line 287 "syntax.y"
+             {yyval = NULL;}
+#line 2024 "syntax.tab.c"
     break;
 
   case 51:
-#line 270 "syntax.y"
-                                        {
-        printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in def");
-        YYERROR;
-        }
-#line 2008 "syntax.tab.c"
+#line 290 "syntax.y"
+                             {
+        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("Def", child, 3, (yylsp[-2]).first_line);
+    }
+#line 2033 "syntax.tab.c"
     break;
 
-  case 53:
-#line 277 "syntax.y"
-              {
-        struct TreeNode *child[1] = {yyvsp[0]};
-        yyval = matchRule("DecList", child, 1);
-    }
-#line 2017 "syntax.tab.c"
+  case 52:
+#line 294 "syntax.y"
+                                        {
+        printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in def");
+        yyval = NULL;
+        YYERROR;
+        }
+#line 2043 "syntax.tab.c"
     break;
 
   case 54:
-#line 281 "syntax.y"
-                        {
-        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("DecList", child, 3);
+#line 302 "syntax.y"
+              {
+        struct TreeNode *child[1] = {yyvsp[0]};
+        yyval = matchRule("DecList", child, 1, (yylsp[0]).first_line);
     }
-#line 2026 "syntax.tab.c"
+#line 2052 "syntax.tab.c"
     break;
 
   case 55:
-#line 287 "syntax.y"
-             {
-        struct TreeNode *child[1] = {yyvsp[0]};
-        yyval = matchRule("Dec", child, 1);
+#line 306 "syntax.y"
+                        {
+        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("DecList", child, 3, (yylsp[-2]).first_line);
     }
-#line 2035 "syntax.tab.c"
+#line 2061 "syntax.tab.c"
     break;
 
   case 56:
-#line 292 "syntax.y"
-                          {
-        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Dec", child, 3);
+#line 312 "syntax.y"
+             {
+        struct TreeNode *child[1] = {yyvsp[0]};
+        yyval = matchRule("Dec", child, 1, (yylsp[0]).first_line);
     }
-#line 2044 "syntax.tab.c"
+#line 2070 "syntax.tab.c"
     break;
 
   case 57:
-#line 298 "syntax.y"
-                       {
+#line 317 "syntax.y"
+                          {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+        yyval = matchRule("Dec", child, 3, (yylsp[-2]).first_line);
     }
-#line 2053 "syntax.tab.c"
+#line 2079 "syntax.tab.c"
     break;
 
   case 58:
-#line 303 "syntax.y"
-                  {
+#line 323 "syntax.y"
+                       {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2062 "syntax.tab.c"
+#line 2088 "syntax.tab.c"
     break;
 
   case 59:
-#line 308 "syntax.y"
-                 {
+#line 328 "syntax.y"
+                  {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2071 "syntax.tab.c"
+#line 2097 "syntax.tab.c"
     break;
 
   case 60:
-#line 313 "syntax.y"
-                    {
+#line 333 "syntax.y"
+                 {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2080 "syntax.tab.c"
+#line 2106 "syntax.tab.c"
     break;
 
   case 61:
-#line 318 "syntax.y"
-                   {
+#line 338 "syntax.y"
+                    {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2089 "syntax.tab.c"
+#line 2115 "syntax.tab.c"
     break;
 
   case 62:
-#line 323 "syntax.y"
-                    {
+#line 343 "syntax.y"
+                   {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2098 "syntax.tab.c"
+#line 2124 "syntax.tab.c"
     break;
 
   case 63:
-#line 328 "syntax.y"
-                   {
+#line 348 "syntax.y"
+                    {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2107 "syntax.tab.c"
+#line 2133 "syntax.tab.c"
     break;
 
   case 64:
-#line 333 "syntax.y"
-                  {
+#line 353 "syntax.y"
+                   {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2116 "syntax.tab.c"
+#line 2142 "syntax.tab.c"
     break;
 
   case 65:
-#line 338 "syntax.y"
-                {
+#line 358 "syntax.y"
+                  {
         struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2125 "syntax.tab.c"
+#line 2151 "syntax.tab.c"
     break;
 
   case 66:
-#line 343 "syntax.y"
+#line 363 "syntax.y"
                 {
-        struct TreeNode *child[2] = {yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 2);
+        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2134 "syntax.tab.c"
+#line 2160 "syntax.tab.c"
     break;
 
   case 67:
-#line 348 "syntax.y"
-              {
+#line 368 "syntax.y"
+                {
         struct TreeNode *child[2] = {yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 2);
+        yyval = matchRule("Exp", child, 2, (yylsp[-1]).first_line);
     }
-#line 2143 "syntax.tab.c"
+#line 2169 "syntax.tab.c"
     break;
 
   case 68:
-#line 353 "syntax.y"
-                     {
-        struct TreeNode *child[4] = {yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 4);
+#line 373 "syntax.y"
+              {
+        struct TreeNode *child[2] = {yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("Exp", child, 2, (yylsp[-1]).first_line);
     }
-#line 2152 "syntax.tab.c"
+#line 2178 "syntax.tab.c"
     break;
 
   case 69:
-#line 358 "syntax.y"
-               {
-        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+#line 378 "syntax.y"
+                     {
+        struct TreeNode *child[4] = {yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("Exp", child, 4, (yylsp[-3]).first_line);
     }
-#line 2161 "syntax.tab.c"
+#line 2187 "syntax.tab.c"
     break;
 
   case 70:
-#line 363 "syntax.y"
-                    {
-        struct TreeNode *child[4] = {yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 4);
+#line 383 "syntax.y"
+               {
+        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2170 "syntax.tab.c"
+#line 2196 "syntax.tab.c"
     break;
 
   case 71:
-#line 367 "syntax.y"
-                      {printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in array index");}
-#line 2176 "syntax.tab.c"
+#line 388 "syntax.y"
+                    {
+        struct TreeNode *child[4] = {yyvsp[-3], yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("Exp", child, 4, (yylsp[-3]).first_line);
+    }
+#line 2205 "syntax.tab.c"
     break;
 
   case 72:
-#line 369 "syntax.y"
-                 {
-        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Exp", child, 3);
+#line 392 "syntax.y"
+                      {
+        printError((yylsp[-1]).first_line, (yylsp[-1]).first_column, "Error in array index");
+        yyval = NULL;
     }
-#line 2185 "syntax.tab.c"
+#line 2214 "syntax.tab.c"
     break;
 
   case 73:
-#line 373 "syntax.y"
-         {
-        struct TreeNode *child[1] = {yyvsp[0]};
-        yyval = matchRule("Exp", child, 1);
+#line 397 "syntax.y"
+                 {
+        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("Exp", child, 3, (yylsp[-2]).first_line);
     }
-#line 2194 "syntax.tab.c"
+#line 2223 "syntax.tab.c"
     break;
 
   case 74:
-#line 377 "syntax.y"
-          {
+#line 401 "syntax.y"
+         {
         struct TreeNode *child[1] = {yyvsp[0]};
-        yyval = matchRule("Exp", child, 1);
+        yyval = matchRule("Exp", child, 1, (yylsp[0]).first_line);
     }
-#line 2203 "syntax.tab.c"
+#line 2232 "syntax.tab.c"
     break;
 
   case 75:
-#line 381 "syntax.y"
-            {
+#line 405 "syntax.y"
+          {
         struct TreeNode *child[1] = {yyvsp[0]};
-        yyval = matchRule("Exp", child, 1);
+        yyval = matchRule("Exp", child, 1, (yylsp[0]).first_line);
     }
-#line 2212 "syntax.tab.c"
+#line 2241 "syntax.tab.c"
     break;
 
   case 76:
-#line 388 "syntax.y"
-                      {
-        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
-        yyval = matchRule("Args", child, 3);
+#line 409 "syntax.y"
+            {
+        struct TreeNode *child[1] = {yyvsp[0]};
+        yyval = matchRule("Exp", child, 1, (yylsp[0]).first_line);
     }
-#line 2221 "syntax.tab.c"
+#line 2250 "syntax.tab.c"
     break;
 
   case 77:
-#line 392 "syntax.y"
+#line 416 "syntax.y"
+                      {
+        struct TreeNode *child[3] = {yyvsp[-2], yyvsp[-1], yyvsp[0]};
+        yyval = matchRule("Args", child, 3, (yylsp[-2]).first_line);
+    }
+#line 2259 "syntax.tab.c"
+    break;
+
+  case 78:
+#line 420 "syntax.y"
           {
         struct TreeNode *child[1] = {yyvsp[0]};
-        yyval = matchRule("Args", child, 1);
+        yyval = matchRule("Args", child, 1, (yylsp[0]).first_line);
     }
-#line 2230 "syntax.tab.c"
+#line 2268 "syntax.tab.c"
     break;
 
 
-#line 2234 "syntax.tab.c"
+#line 2272 "syntax.tab.c"
 
       default: break;
     }
@@ -2468,33 +2506,68 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 396 "syntax.y"
+#line 424 "syntax.y"
 
 
-// void yyerror(char *msg)
-// {
-//     if(strcmp("syntax error", msg) != 0)
-//         fprintf(stderr, "%s\n", msg);
-// }
-
-struct TreeNode * matchRule(char *father, struct TreeNode* child[], int num)
+void yyerror(const char *msg)
 {
+    return;
+}
+
+struct TreeNode * matchRule(char *father, struct TreeNode* child[], int num, int _lineno)
+{
+    int index = 0;
+    for(int i = 0; i < num; ++i)
+    {
+        if(child[i] != NULL)
+        {    
+            child[index] = child[i];
+            ++index;
+        }
+    }
+    if(index == 0)
+        return NULL;
     struct TreeNode * p = (struct TreeNode *)malloc(sizeof(struct TreeNode));
-    for(int i = 0; i < num - 1; ++i)
+    memset((void *)p, 0, sizeof(struct TreeNode));
+    for(int i = 0; i < index - 1; ++i)
         child[i]->next = child[i + 1]; 
-    child[num - 1]->next = NULL;
+    child[index - 1]->next = NULL;
     p->child = child[0];
+    p->lineno = _lineno;
     strcpy(p->name, father);
     return p;
 }
 
-void print(struct TreeNode *p)
+void printToken(struct TreeNode* p)
 {
+    if(strcmp(p->name, "TYPE") == 0)
+        printf("%s: %s\n", p->name, p->value.type_str);
+    else if(strcmp(p->name, "ID") == 0)
+        printf("%s: %s\n", p->name, p->value.type_str);
+    else if(strcmp(p->name, "INT") == 0)
+        printf("%s: %d\n", p->name, p->value.type_int);
+    else if(strcmp(p->name, "FLOAT") == 0)
+        printf("%s: %f\n", p->name, p->value.type_float);
+    else
+        printf("%s\n", p->name);
+
+}
+
+void printTree(struct TreeNode *p, int level)
+{
+    for(int i = 0; i < level * 2; ++i)
+        putc(' ', stdout);
     struct TreeNode* c = p->child;
-    printf("%s\n", p->name);
+
+    if(c != NULL)
+        printf("%s (%d)\n", p->name, p->lineno);
+    else
+        printToken(p);
+        
+    
     while(c != NULL)
     {
-        print(c);
+        printTree(c, level + 1);
         c = c->next;
     }
 }
