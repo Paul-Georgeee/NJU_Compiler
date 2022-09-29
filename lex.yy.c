@@ -527,14 +527,17 @@ char *yytext;
     #include "syntax.tab.h"
     int has_error = 0;
     int yycolumn = 1;
-    
+    struct TreeNode;
+
     #define YY_USER_ACTION \
         yylloc.first_line = yylloc.last_line = yylineno;\
         yylloc.first_column = yycolumn;\
         yylloc.last_column = yycolumn + yyleng - 1;\
         yycolumn += yyleng;
-#line 537 "lex.yy.c"
-#line 538 "lex.yy.c"
+
+    struct TreeNode * init_node(char * name);
+#line 540 "lex.yy.c"
+#line 541 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -751,9 +754,9 @@ YY_DECL
 		}
 
 	{
-#line 44 "lexical.l"
+#line 47 "lexical.l"
 
-#line 757 "lex.yy.c"
+#line 760 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -822,256 +825,274 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 45 "lexical.l"
+#line 48 "lexical.l"
 {
     has_error = 0;
-    // printf("STRUCT\n");
+    yylval = init_node("STRUCT");
     return STRUCT;
-    }
+}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 50 "lexical.l"
+#line 53 "lexical.l"
 {
     has_error = 0;
-    // printf("RETURN\n");
+    yylval = init_node("RETURN");
     return RETURN;
     }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 55 "lexical.l"
+#line 58 "lexical.l"
 {
     has_error = 0;
-    // printf("IF\n");
+    yylval = init_node("IF");
     return IF;
     }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 60 "lexical.l"
+#line 63 "lexical.l"
 {
     has_error = 0;
-    // printf("ELSE\n");
+    yylval = init_node("ELSE");
     return ELSE;
     }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 65 "lexical.l"
+#line 68 "lexical.l"
 {
     has_error = 0;
-    // printf("WHILE\n");
+    yylval = init_node("WHILE");
     return WHILE;
     }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 70 "lexical.l"
+#line 73 "lexical.l"
 {
     has_error = 0;
-    // printf("TYPE\n");
+    yylval = init_node("TYPE");
+    sscanf(yytext, "%s", yylval->value.type_str);
     return TYPE;
     }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 75 "lexical.l"
+#line 79 "lexical.l"
 {
     has_error = 0;
-    sscanf(yytext, "%f", &(yylval.type_float));
+    yylval = init_node("FLOAT");
+    sscanf(yytext, "%f", &(yylval->value.type_float));
     return FLOAT;
 }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 80 "lexical.l"
+#line 85 "lexical.l"
 {
-    has_error = 0;
-    sscanf(yytext, "%o", &(yylval.type_int));
+    has_error = 0;  
+    yylval = init_node("INT");
+    sscanf(yytext, "%o", &(yylval->value.type_int));    
     return INT;
     }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 85 "lexical.l"
+#line 91 "lexical.l"
 {
     has_error = 0;
-    sscanf(yytext, "%x", &(yylval.type_int));
+    yylval = init_node("INT");
+    sscanf(yytext, "%x", &(yylval->value.type_int));      
     return INT;
     }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 90 "lexical.l"
+#line 97 "lexical.l"
 {
     has_error = 0;
-    sscanf(yytext, "%d", &(yylval.type_int));
+    yylval = init_node("INT");
+    sscanf(yytext, "%d", &(yylval->value.type_int));     
     return INT;
     }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 95 "lexical.l"
+#line 103 "lexical.l"
 {
     has_error = 0;
-   // printf("ID %s\n", yytext);
+    yylval = init_node("ID");
+    sscanf(yytext, "%s", yylval->value.type_str);
     return ID;
     }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 100 "lexical.l"
+#line 109 "lexical.l"
 {
     has_error = 0;
-    // printf("SEMI\n");
+    yylval = init_node("SEMI");
     return SEMI;
     }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 105 "lexical.l"
+#line 114 "lexical.l"
 {
     has_error = 0;
-    //printf("COMMA\n");
+    yylval = init_node("COMMA");
     return COMMA;
     }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 110 "lexical.l"
+#line 119 "lexical.l"
 {
     has_error = 0;
-    // printf("ASSIGNOP\n");
+    yylval = init_node("ASSIGNOP");
     return ASSIGNOP;
     }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 115 "lexical.l"
+#line 124 "lexical.l"
 {
     has_error = 0;
+    yylval = init_node("RELOP");
     return RELOP;
-    // printf("RELOP\n");
     }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 120 "lexical.l"
-{//printf("PLUS\n"); 
+#line 129 "lexical.l"
+{
     has_error = 0;
+    yylval = init_node("PLUS");
     return PLUS;
     }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 124 "lexical.l"
-{//printf("MINUS\n");
+#line 134 "lexical.l"
+{
     has_error = 0;
+    yylval = init_node("MINUX");
     return MINUS;
     }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 128 "lexical.l"
-{//printf("STAR\n");
+#line 139 "lexical.l"
+{
     has_error = 0;
+    yylval = init_node("STAR");
     return STAR;
     }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 132 "lexical.l"
-{//printf("DIV\n");
+#line 144 "lexical.l"
+{
     has_error = 0;    
+    yylval = init_node("DIV");
     return DIV;
     }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 136 "lexical.l"
+#line 149 "lexical.l"
 {
     has_error = 0;
+    yylval = init_node("AND");
     return AND;
     }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 140 "lexical.l"
+#line 154 "lexical.l"
 {
     has_error = 0;
+    yylval = init_node("OR");
     return OR;
     }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 144 "lexical.l"
+#line 159 "lexical.l"
 {
     has_error = 0;
+    yylval = init_node("DOT");
     return DOT;
     }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 148 "lexical.l"
+#line 164 "lexical.l"
 {
     has_error = 0;
+    yylval = init_node("NOT");
     return NOT;
     }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 152 "lexical.l"
+#line 169 "lexical.l"
 {
     has_error = 0;
-    // printf("LP\n");
+    yylval = init_node("LP");
     return LP;
     }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 157 "lexical.l"
+#line 174 "lexical.l"
 {
     has_error = 0;
-    // printf("RP\n");
+    yylval = init_node("RP");
     return RP;
     }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 162 "lexical.l"
+#line 179 "lexical.l"
 {
     has_error = 0;
+    yylval = init_node("LB");
     return LB;
     }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 166 "lexical.l"
+#line 184 "lexical.l"
 {
     has_error = 0;
+    yylval = init_node("RB");
     return RB;
     }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 170 "lexical.l"
+#line 189 "lexical.l"
 {
     has_error = 0;
+    yylval = init_node("LC");
     return LC;
     }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 174 "lexical.l"
+#line 194 "lexical.l"
 {
     has_error = 0;
+    yylval = init_node("RC");
     return RC;
     }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 178 "lexical.l"
+#line 199 "lexical.l"
 {
     char c = input();
     while(c != '\n') c = input();
@@ -1080,7 +1101,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 183 "lexical.l"
+#line 204 "lexical.l"
 {
     char last = 0, now = input();
     while(last != '*' && now != '/')
@@ -1092,32 +1113,32 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 191 "lexical.l"
+#line 212 "lexical.l"
 {has_error = 0;}
 	YY_BREAK
 case 33:
 /* rule 33 can match eol */
 YY_RULE_SETUP
-#line 192 "lexical.l"
+#line 213 "lexical.l"
 {yycolumn = 1;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 193 "lexical.l"
+#line 214 "lexical.l"
 {
     if(has_error == 0)
     {
         printf("Error type A at line %d: unexpected token %s\n", yylineno, yytext);
         has_error = 1;
     }
-    }
+}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 200 "lexical.l"
+#line 221 "lexical.l"
 ECHO;
 	YY_BREAK
-#line 1121 "lex.yy.c"
+#line 1142 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2134,5 +2155,12 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 200 "lexical.l"
+#line 221 "lexical.l"
 
+
+struct TreeNode * init_node(char * name)
+{
+    struct TreeNode *p = (struct TreeNode *)malloc(sizeof(struct TreeNode));
+    strcpy(p->name, name);
+    return p;
+}

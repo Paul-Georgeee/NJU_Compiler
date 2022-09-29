@@ -2,12 +2,15 @@
     #include "syntax.tab.h"
     int has_error = 0;
     int yycolumn = 1;
-    
+    struct TreeNode;
+
     #define YY_USER_ACTION \
         yylloc.first_line = yylloc.last_line = yylineno;\
         yylloc.first_column = yycolumn;\
         yylloc.last_column = yycolumn + yyleng - 1;\
         yycolumn += yyleng;
+
+    struct TreeNode * init_node(char * name);
 %}
 digit [0-9]
 nondigit [^0-9]
@@ -44,135 +47,153 @@ TYPE int|float
 %%
 {STRUCT} {
     has_error = 0;
-    // printf("STRUCT\n");
+    yylval = init_node("STRUCT");
     return STRUCT;
-    }
+}
 {RETURN} {
     has_error = 0;
-    // printf("RETURN\n");
+    yylval = init_node("RETURN");
     return RETURN;
     }
 {IF} {
     has_error = 0;
-    // printf("IF\n");
+    yylval = init_node("IF");
     return IF;
     }
 {ELSE} {
     has_error = 0;
-    // printf("ELSE\n");
+    yylval = init_node("ELSE");
     return ELSE;
     }
 {WHILE} {
     has_error = 0;
-    // printf("WHILE\n");
+    yylval = init_node("WHILE");
     return WHILE;
     }
 {TYPE} {
     has_error = 0;
-    // printf("TYPE\n");
+    yylval = init_node("TYPE");
+    sscanf(yytext, "%s", yylval->value.type_str);
     return TYPE;
     }
 (({digit_z}{digit}*|0)\.{digit}+)|({digit}*\.{digit}*[Ee][+-]?{digit}+) {
     has_error = 0;
-    sscanf(yytext, "%f", &(yylval.type_float));
+    yylval = init_node("FLOAT");
+    sscanf(yytext, "%f", &(yylval->value.type_float));
     return FLOAT;
 }
 0[0-8]+ {
-    has_error = 0;
-    sscanf(yytext, "%o", &(yylval.type_int));
+    has_error = 0;  
+    yylval = init_node("INT");
+    sscanf(yytext, "%o", &(yylval->value.type_int));    
     return INT;
     }
 0x[0-9a-fA-F]+ {
     has_error = 0;
-    sscanf(yytext, "%x", &(yylval.type_int));
+    yylval = init_node("INT");
+    sscanf(yytext, "%x", &(yylval->value.type_int));      
     return INT;
     }
 {digit_z}{digit}*|0 {
     has_error = 0;
-    sscanf(yytext, "%d", &(yylval.type_int));
+    yylval = init_node("INT");
+    sscanf(yytext, "%d", &(yylval->value.type_int));     
     return INT;
     }
 {letter}({letter}|{digit})* {
     has_error = 0;
-   // printf("ID %s\n", yytext);
+    yylval = init_node("ID");
+    sscanf(yytext, "%s", yylval->value.type_str);
     return ID;
     }
 {SEMI} {
     has_error = 0;
-    // printf("SEMI\n");
+    yylval = init_node("SEMI");
     return SEMI;
     }
 {COMMA} {
     has_error = 0;
-    //printf("COMMA\n");
+    yylval = init_node("COMMA");
     return COMMA;
     }
 {ASSIGNOP} {
     has_error = 0;
-    // printf("ASSIGNOP\n");
+    yylval = init_node("ASSIGNOP");
     return ASSIGNOP;
     }
 {RELOP} {
     has_error = 0;
+    yylval = init_node("RELOP");
     return RELOP;
-    // printf("RELOP\n");
     }
-{PLUS} {//printf("PLUS\n"); 
+{PLUS} {
     has_error = 0;
+    yylval = init_node("PLUS");
     return PLUS;
     }
-{MINUS} {//printf("MINUS\n");
+{MINUS} {
     has_error = 0;
+    yylval = init_node("MINUX");
     return MINUS;
     }
-{STAR} {//printf("STAR\n");
+{STAR} {
     has_error = 0;
+    yylval = init_node("STAR");
     return STAR;
     }
-{DIV} {//printf("DIV\n");
+{DIV} {
     has_error = 0;    
+    yylval = init_node("DIV");
     return DIV;
     }
 {AND} {
     has_error = 0;
+    yylval = init_node("AND");
     return AND;
     }
 {OR} {
     has_error = 0;
+    yylval = init_node("OR");
     return OR;
     }
 {DOT} {
     has_error = 0;
+    yylval = init_node("DOT");
     return DOT;
     }
 {NOT} {
     has_error = 0;
+    yylval = init_node("NOT");
     return NOT;
     }
 {LP} {
     has_error = 0;
-    // printf("LP\n");
+    yylval = init_node("LP");
     return LP;
     }
 {RP} {
     has_error = 0;
-    // printf("RP\n");
+    yylval = init_node("RP");
     return RP;
     }
 {LB} {
     has_error = 0;
+    yylval = init_node("LB");
     return LB;
     }
 {RB} {
     has_error = 0;
+    yylval = init_node("RB");
     return RB;
     }
 {LC} {
     has_error = 0;
+    yylval = init_node("LC");
     return LC;
     }
 {RC} {
     has_error = 0;
+    yylval = init_node("RC");
     return RC;
     }
 "//" {
@@ -196,5 +217,12 @@ TYPE int|float
         printf("Error type A at line %d: unexpected token %s\n", yylineno, yytext);
         has_error = 1;
     }
-    }
+}
 %%
+
+struct TreeNode * init_node(char * name)
+{
+    struct TreeNode *p = (struct TreeNode *)malloc(sizeof(struct TreeNode));
+    strcpy(p->name, name);
+    return p;
+}
