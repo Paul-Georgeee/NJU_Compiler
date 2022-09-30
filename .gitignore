@@ -1,0 +1,5 @@
+temp.txt
+syntax.output
+syntax.tab.h
+syntax.tab.c
+lex.yy.c main

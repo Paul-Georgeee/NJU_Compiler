@@ -1,10 +1,4 @@
 int main()
 {
-    /*
-    comment
-    /*
-    nested comment
-    */
-    */
-    int i = 1;
+   float i = 01.23E12, j = 43.e-4, k = .5E03;
 }

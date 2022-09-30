@@ -3,6 +3,7 @@
     void yyerror(const char *msg);
     #define YYSTYPE struct TreeNode*
 
+    int printErrorFlag = 1;
     int wrong = 0;
 
     struct TreeNode{
@@ -21,12 +22,30 @@
     struct TreeNode * matchRule(char *father, struct TreeNode* child[], int num, int _lineno);
 
     #include "lex.yy.c"
-    
-    void printError(int line, int col, char *descprition)
+
+    void printError(int line, char *descprition)
     {
         wrong = 1;
         fprintf(stderr, "Error type B at Line %d: %s\n", line, descprition);
     }
+    
+    #define matchFakeRule(line, descprition, node)\
+    {\
+        printError(line, descprition);\
+        node = NULL;\
+        printErrorFlag = 0;\
+        YYERROR;\
+    }
+    
+    #define matchError(line, descprition, node)\
+    {\
+        if(printErrorFlag == 1)\
+            printError(line, descprition);\
+        else\
+            printErrorFlag = 1;\
+        node = NULL;\
+    }
+
 %}
 
 %nonassoc MISSERROR
@@ -54,21 +73,21 @@ Program : ExtDefList {
         root = $$;
     }
     ;
+    
 ExtDefList : ExtDef ExtDefList {
         struct TreeNode * child[2] = {$1, $2};
         $$ = matchRule("ExtDefList", child, 2, @1.first_line);
     }
     | %empty {$$ = NULL;}
     ;
+
 ExtDef : Specifier ExtDecList SEMI {
         struct TreeNode * child[3] = {$1, $2, $3};
         $$ = matchRule("ExtDef", child, 3, @1.first_line);
     }
 
     | Specifier ExtDecList %prec MISSERROR {
-        printError(@2.first_line, @2.first_column, "Miss \";\" in ExtDef");
-        $$ = NULL;
-        YYERROR;
+        matchFakeRule(@1.first_line, "Miss \";\" in ExtDef", $$);
     }
     
     | Specifier SEMI {
@@ -76,9 +95,7 @@ ExtDef : Specifier ExtDecList SEMI {
         $$ = matchRule("ExtDef", child, 2, @1.first_line);
     }
     | Specifier %prec MISSERROR {
-        printError(@1.first_line, @1.first_column, "Miss \";\" in ExtDef");
-        $$ = NULL;
-        YYERROR;
+        matchFakeRule(@1.first_line, "Miss \";\" in ExtDef", $$);
     }
     
     | Specifier FunDec CompSt {
@@ -86,7 +103,9 @@ ExtDef : Specifier ExtDecList SEMI {
         $$ = matchRule("ExtDef", child, 3, @1.first_line);
     }
 
-    | error SEMI {wrong = 1;$$ = NULL;}
+    | error SEMI {
+        matchError(@1.first_line, "Error in ExtDef", $$);
+    }
     ;
 
 ExtDecList : VarDec {
@@ -109,6 +128,7 @@ Specifier : TYPE {
         $$ = matchRule("Specifier", child, 1, @1.first_line);
     }
     ;
+
 StructSpecifier : STRUCT OptTag LC DefList RC {
         struct TreeNode * child[5] = {$1, $2, $3, $4, $5};
         $$ = matchRule("StructSpecifier", child, 5, @1.first_line);  
@@ -118,7 +138,12 @@ StructSpecifier : STRUCT OptTag LC DefList RC {
         struct TreeNode * child[2] = {$1, $2};
         $$ = matchRule("StructSpecifier", child, 2, @1.first_line);
     }
+
+    | error RC {
+        matchError(@1.first_line, "Error in Struct def", $$);
+    }
     ;
+
 OptTag : ID {
         struct TreeNode * child[1] = {$1};
         $$ = matchRule("OptTag", child, 1, @1.first_line);
@@ -144,8 +169,7 @@ VarDec : ID {
     }
 
     | VarDec LB error RB {
-        printError(@1.first_line, @1.first_column, "ERROR in VarDec");
-        $$ = NULL;
+        matchError(@1.first_line, "Error in VacDec", $$);
     }
     ;
 
@@ -160,9 +184,9 @@ FunDec : ID LP VarList RP {
     }
 
     | ID LP error RP {
-        printError(@3.first_line, @3.first_column, "Error in Func Args");
-        $$ = NULL;
+        matchError(@3.first_line, "Error in Func Args", $$);
     }
+
     ;
 
 VarList : ParamDec COMMA VarList {
@@ -202,10 +226,8 @@ Stmt : Exp SEMI {
     }
 
     | Exp %prec MISSERROR {
-        printError(@1.first_line, @1.first_column, "Miss \";\" in Exp statement");
-        $$ = NULL;
-        YYERROR;
-        }
+        matchFakeRule(@1.first_line, "Miss \";\" in Exp Stmt", $$);    
+    }
 
     | CompSt {
         struct TreeNode *child[1] = {$1};
@@ -217,40 +239,27 @@ Stmt : Exp SEMI {
         $$ = matchRule("Stmt", child, 3, @1.first_line);    
     }
     | RETURN %prec MISSERROR {
-        printError(@1.first_line, @1.first_column, "Miss \";\" in Return statement");
-        $$ = NULL;
-        YYERROR;
+        matchFakeRule(@1.first_line, "Miss \";\" in Return Stmt", $$);    
     }
     
     | IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {
         struct TreeNode *child[5] = {$1, $2, $3, $4, $5};
         $$ = matchRule("Stmt", child, 5, @1.first_line);   
     }
-    | IF error RP Stmt %prec LOWER_THAN_ELSE {
-        printError(@3.first_line, @3.first_column, "Error in if statement");
-        $$ = NULL;
+    | IF LP error RP Stmt %prec LOWER_THAN_ELSE {
+        matchError(@3.first_line, "Error in if Exp", $$);
     }
-    | IF LP error  Stmt %prec LOWER_THAN_ELSE {
-        printError(@3.first_line, @3.first_column, "Error in if statement");
-        $$ = NULL;
-    }
-    
+
     | IF LP Exp RP Stmt ELSE Stmt {
         struct TreeNode *child[7] = {$1, $2, $3, $4, $5, $6, $7};
         $$ = matchRule("Stmt", child, 7, @1.first_line);  
     }
-    | IF error RP Stmt ELSE Stmt {
-        printError(@3.first_line, @3.first_column, "Error in if statement");
-        $$ = NULL;
-    }
-    | IF LP error Stmt ELSE Stmt {
-        printError(@3.first_line, @3.first_column, "Error in if statement");
-        $$ = NULL;
+    | IF LP error RP Stmt ELSE Stmt {
+        matchError(@3.first_line, "Error in if else Exp", $$);
     }
 
     | ELSE error {
-        printError(@2.first_line, @2.first_column, "unmatch if else");
-        $$ = NULL;
+        matchError(@1.first_line, "unmatch if else", $$);
     }
     
     | WHILE LP Exp RP Stmt 
@@ -258,25 +267,13 @@ Stmt : Exp SEMI {
         struct TreeNode *child[5] = {$1, $2, $3, $4, $5};
         $$ = matchRule("Stmt", child, 5, @1.first_line); 
     }
-    | WHILE error RP Stmt {
-        printError(@3.first_line, @3.first_column, "Error in while");
-        $$ = NULL;    
-    }
-    | WHILE LP error Stmt {
-        printError(@3.first_line, @3.first_column, "Error in while");
-        $$ = NULL;
+    | WHILE LP error RP Stmt {
+        matchError(@3.first_line, "Error in while Exp", $$);
     }
 
-    | STAR  %prec MISSERROR {
-        printError(@1.first_line, @1.first_column, "Error in statement");
-        $$ = NULL;
-        YYERROR;
+    | error SEMI {
+        matchError(@1.first_line, "Error in Stmt", $$);
     }
-
-    
-
-
-    | error SEMI {wrong = 1;$$ = NULL;}
     ;
 
 DefList : Def DefList {
@@ -292,11 +289,11 @@ Def : Specifier DecList SEMI {
         $$ = matchRule("Def", child, 3, @1.first_line);
     }
     | Specifier DecList %prec MISSERROR {
-        printError(@1.first_line, @1.first_column, "Error in def");
-        $$ = NULL;
-        YYERROR;
-        }
-    | error SEMI {wrong = 1;$$ = NULL;}
+        matchFakeRule(@2.first_line, "Miss \";\" in Def", $$);
+    }
+    | error SEMI {
+        matchError(@1.first_line, "Error in Def", $$);
+    }
     ;
 
 DecList : Dec {
@@ -313,7 +310,6 @@ Dec : VarDec {
         struct TreeNode *child[1] = {$1};
         $$ = matchRule("Dec", child, 1, @1.first_line);
     }
-    
     | VarDec ASSIGNOP Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Dec", child, 3, @1.first_line);
@@ -324,76 +320,61 @@ Exp : Exp ASSIGNOP Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-
     | Exp AND Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-    
     | Exp OR Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-    
     | Exp RELOP Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-    
     | Exp PLUS Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-    
     | Exp MINUS Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-    
     | Exp STAR Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-    
     | Exp DIV Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-    
     | LP Exp RP {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-    
     | MINUS Exp {
         struct TreeNode *child[2] = {$1, $2};
         $$ = matchRule("Exp", child, 2, @1.first_line);
     }
-    
     | NOT Exp {
         struct TreeNode *child[2] = {$1, $2};
         $$ = matchRule("Exp", child, 2, @1.first_line);
     }
-
     | ID LP Args RP  {
         struct TreeNode *child[4] = {$1, $2, $3, $4};
         $$ = matchRule("Exp", child, 4, @1.first_line);
     }
-    
     | ID LP RP {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-
     | Exp LB Exp RB {
         struct TreeNode *child[4] = {$1, $2, $3, $4};
         $$ = matchRule("Exp", child, 4, @1.first_line);
     }
     | Exp LB error RB {
-        printError(@3.first_line, @3.first_column, "Error in array index");
-        $$ = NULL;
+        matchError(@3.first_line, "Error in array index", $$);
     }
-
     | Exp DOT ID {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
@@ -410,9 +391,8 @@ Exp : Exp ASSIGNOP Exp {
         struct TreeNode *child[1] = {$1};
         $$ = matchRule("Exp", child, 1, @1.first_line);
     }
-
-    /*| Exp ID {printError(@2.first_line, @2.first_column, "miss operator beween exp");}*/
     ;
+
 Args : Exp COMMA Args {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Args", child, 3, @1.first_line);
@@ -484,4 +464,16 @@ void printTree(struct TreeNode *p, int level)
         printTree(c, level + 1);
         c = c->next;
     }
+}
+
+void freeTree(struct TreeNode *p)
+{
+    struct TreeNode * c = p->child, *temp;
+    while(c != NULL)
+    {
+        temp = c;
+        c = c->next;
+        freeTree(temp);
+    }
+    free(p);
 }

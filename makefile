@@ -11,3 +11,6 @@ debug:lexical.l main.c syntax.y
 	flex lexical.l
 	gcc-7 main.c syntax.tab.c -lfl -ly -o main
 	./main test.cmm >temp.txt 2>&1
+
+clean:
+	rm temp.txt syntax.output syntax.tab.h syntax.tab.c lex.yy.c main

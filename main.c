@@ -1,12 +1,12 @@
 #include<stdio.h>
 extern FILE* yyin;
-int yydebug;
 int wrong;
 void yyrestart(FILE * fp);
 void yyparse();
 struct TreeNode;
 
 void printTree(struct TreeNode *p, int level);
+void freeTree(struct TreeNode *p);
 struct TreeNode *root;
 
 int main(int argc, char ** argv)
@@ -18,10 +18,10 @@ int main(int argc, char ** argv)
         perror(argv[1]);
         return 1;
     }
-    yydebug = 1;
     yyrestart(fp);
     yyparse();
     if(wrong == 0)
         printTree(root, 0);
+    freeTree(root);
     return 0;
 }

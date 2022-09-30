@@ -78,13 +78,13 @@ TYPE int|float
     sscanf(yytext, "%s", yylval->value.type_str);
     return TYPE;
     }
-(({digit_z}{digit}*|0)\.{digit}+)|({digit}*\.{digit}*[Ee][+-]?{digit}+) {
+(({digit_z}{digit}*|0)\.{digit}+)|((({digit}+\.{digit}*)|({digit}*\.{digit}+))[Ee][+-]?{digit}+) {
     has_error = 0;
     yylval = init_node("FLOAT");
     sscanf(yytext, "%f", &(yylval->value.type_float));
     return FLOAT;
 }
-0[0-8]+ {
+0[0-7]+ {
     has_error = 0;  
     yylval = init_node("INT");
     sscanf(yytext, "%o", &(yylval->value.type_int));    
@@ -217,7 +217,7 @@ TYPE int|float
     wrong = 1;
     if(has_error == 0)
     {
-        fprintf(stderr, "Error type A at line %d: unexpected token %s\n", yylineno, yytext);
+        fprintf(stdout, "Error type A at line %d: unexpected token %s\n", yylineno, yytext);
         has_error = 1;
     }
     
