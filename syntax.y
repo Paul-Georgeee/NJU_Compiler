@@ -352,7 +352,7 @@ Exp : Exp ASSIGNOP Exp {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
     }
-    | MINUS Exp {
+    | MINUS Exp %prec NEG{
         struct TreeNode *child[2] = {$1, $2};
         $$ = matchRule("Exp", child, 2, @1.first_line);
     }
@@ -367,6 +367,9 @@ Exp : Exp ASSIGNOP Exp {
     | ID LP RP {
         struct TreeNode *child[3] = {$1, $2, $3};
         $$ = matchRule("Exp", child, 3, @1.first_line);
+    }
+    | ID LP error RP {
+        matchError(@3.first_line, "Error in func args", $$);
     }
     | Exp LB Exp RB {
         struct TreeNode *child[4] = {$1, $2, $3, $4};

@@ -12,6 +12,13 @@
         yycolumn += yyleng;
 
     struct TreeNode * init_node(char * name);
+
+    #define INITTOKEN_NOVAL(TOKENNAME)\
+    {\
+        has_error = 0;\
+        yylval = init_node(#TOKENNAME);\
+        return TOKENNAME;\
+    }
 %}
 digit [0-9]
 nondigit [^0-9]
@@ -47,31 +54,11 @@ TYPE int|float
 
 %%
 
-{STRUCT} {
-    has_error = 0;
-    yylval = init_node("STRUCT");
-    return STRUCT;
-}
-{RETURN} {
-    has_error = 0;
-    yylval = init_node("RETURN");
-    return RETURN;
-    }
-{IF} {
-    has_error = 0;
-    yylval = init_node("IF");
-    return IF;
-    }
-{ELSE} {
-    has_error = 0;
-    yylval = init_node("ELSE");
-    return ELSE;
-    }
-{WHILE} {
-    has_error = 0;
-    yylval = init_node("WHILE");
-    return WHILE;
-    }
+{STRUCT} { INITTOKEN_NOVAL(STRUCT)}
+{RETURN} { INITTOKEN_NOVAL(RETURN)}
+{IF} { INITTOKEN_NOVAL(IF)}
+{ELSE} { INITTOKEN_NOVAL(ELSE)}
+{WHILE} { INITTOKEN_NOVAL(WHILE)}
 {TYPE} {
     has_error = 0;
     yylval = init_node("TYPE");
@@ -108,96 +95,24 @@ TYPE int|float
     sscanf(yytext, "%s", yylval->value.type_str);
     return ID;
     }
-{SEMI} {
-    has_error = 0;
-    yylval = init_node("SEMI");
-    return SEMI;
-    }
-{COMMA} {
-    has_error = 0;
-    yylval = init_node("COMMA");
-    return COMMA;
-    }
-{ASSIGNOP} {
-    has_error = 0;
-    yylval = init_node("ASSIGNOP");
-    return ASSIGNOP;
-    }
-{RELOP} {
-    has_error = 0;
-    yylval = init_node("RELOP");
-    return RELOP;
-    }
-{PLUS} {
-    has_error = 0;
-    yylval = init_node("PLUS");
-    return PLUS;
-    }
-{MINUS} {
-    has_error = 0;
-    yylval = init_node("MINUS");
-    return MINUS;
-    }
-{STAR} {
-    has_error = 0;
-    yylval = init_node("STAR");
-    return STAR;
-    }
-{DIV} {
-    has_error = 0;    
-    yylval = init_node("DIV");
-    return DIV;
-    }
-{AND} {
-    has_error = 0;
-    yylval = init_node("AND");
-    return AND;
-    }
-{OR} {
-    has_error = 0;
-    yylval = init_node("OR");
-    return OR;
-    }
-{DOT} {
-    has_error = 0;
-    yylval = init_node("DOT");
-    return DOT;
-    }
-{NOT} {
-    has_error = 0;
-    yylval = init_node("NOT");
-    return NOT;
-    }
-{LP} {
-    has_error = 0;
-    yylval = init_node("LP");
-    return LP;
-    }
-{RP} {
-    has_error = 0;
-    yylval = init_node("RP");
-    return RP;
-    }
-{LB} {
-    has_error = 0;
-    yylval = init_node("LB");
-    return LB;
-    }
-{RB} {
-    has_error = 0;
-    yylval = init_node("RB");
-    return RB;
-    }
-{LC} {
-    has_error = 0;
-    yylval = init_node("LC");
-    return LC;
-    }
-{RC} {
-    has_error = 0;
-    yylval = init_node("RC");
-    return RC;
-    }
+{SEMI} { INITTOKEN_NOVAL(SEMI)}
+{COMMA} { INITTOKEN_NOVAL(COMMA)}
+{ASSIGNOP} { INITTOKEN_NOVAL(ASSIGNOP)}
+{RELOP} { INITTOKEN_NOVAL(RELOP)}
+{PLUS} { INITTOKEN_NOVAL(PLUS)}
+{MINUS} { INITTOKEN_NOVAL(MINUS)}
+{STAR} { INITTOKEN_NOVAL(STAR)}
+{DIV} { INITTOKEN_NOVAL(DIV)}
+{AND} { INITTOKEN_NOVAL(AND)}
+{OR} { INITTOKEN_NOVAL(OR)}
+{DOT} { INITTOKEN_NOVAL(DOT)}
+{NOT} { INITTOKEN_NOVAL(NOT)}
+{LP} { INITTOKEN_NOVAL(LP)}
+{RP} { INITTOKEN_NOVAL(RP)}
+{LB} { INITTOKEN_NOVAL(LB)}
+{RB} { INITTOKEN_NOVAL(RB)}
+{LC} { INITTOKEN_NOVAL(LC)}
+{RC} { INITTOKEN_NOVAL(RC)}
 "//" {
     char c = input();
     while(c != '\n') {c = input();}
