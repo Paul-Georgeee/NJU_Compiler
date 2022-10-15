@@ -2,7 +2,6 @@
     #define YYERROR_VERBOSE
     void yyerror(const char *msg);
     #define YYSTYPE struct TreeNode*
-
     int printErrorFlag = 1;
     int wrong = 0;
 
@@ -458,6 +457,8 @@ void printTree(struct TreeNode *p, int level)
 
 void freeTree(struct TreeNode *p)
 {
+    if(p == NULL)
+        return;
     struct TreeNode * c = p->child, *temp;
     while(c != NULL)
     {

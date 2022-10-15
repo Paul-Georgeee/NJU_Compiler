@@ -1,7 +1,7 @@
 all:lexical.l main.c syntax.y semantic.c
 	flex lexical.l
 	bison -d -v syntax.y
-	gcc-7 main.c syntax.tab.c semantic.c -lfl -ly -o main
+	gcc-7 main.c syntax.tab.c semantic.c -lfl -ly -g -o main
 
 run:all
 	./main test.cmm

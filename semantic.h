@@ -54,4 +54,4 @@ struct Type * traverseForSpecifier(struct TreeNode* p);
 struct Symbol * traverseForVarDec(struct TreeNode * p, struct Type *t);
 
 struct Symbol * search(char *name);
-void insert(struct Symbol * s);
+int insert(struct Symbol * s);

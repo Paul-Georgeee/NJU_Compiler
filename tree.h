@@ -1,3 +1,5 @@
+struct Type;
+
 struct TreeNode
 {
     char name[32];
@@ -6,6 +8,10 @@ struct TreeNode
         int type_int;
         float type_float;
         char type_str[32];
+        struct{
+            struct Type *typeForExp;
+            int leftFlag;
+        }
     } value;
     int lineno;
     struct TreeNode *child;
