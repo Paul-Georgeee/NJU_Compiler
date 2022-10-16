@@ -51,7 +51,8 @@ struct SymbolStack
 };
 
 struct Type * traverseForSpecifier(struct TreeNode* p);
+void traverseForCompSt(struct TreeNode *p);
 struct Symbol * traverseForVarDec(struct TreeNode * p, struct Type *t);
-
+void traverseForExp(struct TreeNode *p);
 struct Symbol * search(char *name);
 int insert(struct Symbol * s);

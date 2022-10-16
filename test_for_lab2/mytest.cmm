@@ -1,0 +1,33 @@
+struct Test1{
+  int a[2][3];
+  struct{
+    float b;
+    int c[4];
+  } d;
+};
+
+struct Test1{
+  int a;
+};
+
+struct Test2{
+  struct Test1 t[100];
+  int e;
+};
+
+int main(int argn, float args){
+  int i, j, k;
+  struct Test1 p[100];
+  1 + 1;
+}
+
+int main()
+{
+  int i;
+  struct Treenode t;
+}
+
+struct AA less()
+{
+  1 + 2;
+}

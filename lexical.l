@@ -11,12 +11,12 @@
         yylloc.last_column = yycolumn + yyleng - 1;\
         yycolumn += yyleng;
 
-    struct TreeNode * init_node(char * name);
+    struct TreeNode * init_node(char * name, int lineno);
 
-    #define INITTOKEN_NOVAL(TOKENNAME)\
+    #define INITTOKEN_NOVAL(TOKENNAME, LINENO)\
     {\
         has_error = 0;\
-        yylval = init_node(#TOKENNAME);\
+        yylval = init_node(#TOKENNAME, LINENO);\
         return TOKENNAME;\
     }
 %}
@@ -54,65 +54,65 @@ TYPE int|float
 
 %%
 
-{STRUCT} { INITTOKEN_NOVAL(STRUCT)}
-{RETURN} { INITTOKEN_NOVAL(RETURN)}
-{IF} { INITTOKEN_NOVAL(IF)}
-{ELSE} { INITTOKEN_NOVAL(ELSE)}
-{WHILE} { INITTOKEN_NOVAL(WHILE)}
+{STRUCT} { INITTOKEN_NOVAL(STRUCT, yylineno)}
+{RETURN} { INITTOKEN_NOVAL(RETURN, yylineno)}
+{IF} { INITTOKEN_NOVAL(IF, yylineno)}
+{ELSE} { INITTOKEN_NOVAL(ELSE, yylineno)}
+{WHILE} { INITTOKEN_NOVAL(WHILE, yylineno)}
 {TYPE} {
     has_error = 0;
-    yylval = init_node("TYPE");
+    yylval = init_node("TYPE", yylineno);
     sscanf(yytext, "%s", yylval->value.type_str);
     return TYPE;
     }
 (({digit_z}{digit}*|0)\.{digit}+)|((({digit}+\.{digit}*)|({digit}*\.{digit}+))[Ee][+-]?{digit}+) {
     has_error = 0;
-    yylval = init_node("FLOAT");
+    yylval = init_node("FLOAT", yylineno);
     sscanf(yytext, "%f", &(yylval->value.type_float));
     return FLOAT;
 }
 0[0-7]+ {
     has_error = 0;  
-    yylval = init_node("INT");
+    yylval = init_node("INT", yylineno);
     sscanf(yytext, "%o", &(yylval->value.type_int));    
     return INT;
     }
 0x[0-9a-fA-F]+ {
     has_error = 0;
-    yylval = init_node("INT");
+    yylval = init_node("INT", yylineno);
     sscanf(yytext, "%x", &(yylval->value.type_int));      
     return INT;
     }
 {digit_z}{digit}*|0 {
     has_error = 0;
-    yylval = init_node("INT");
+    yylval = init_node("INT", yylineno);
     sscanf(yytext, "%d", &(yylval->value.type_int));     
     return INT;
     }
 {letter}({letter}|{digit})* {
     has_error = 0;
-    yylval = init_node("ID");
+    yylval = init_node("ID", yylineno);
     sscanf(yytext, "%s", yylval->value.type_str);
     return ID;
     }
-{SEMI} { INITTOKEN_NOVAL(SEMI)}
-{COMMA} { INITTOKEN_NOVAL(COMMA)}
-{ASSIGNOP} { INITTOKEN_NOVAL(ASSIGNOP)}
-{RELOP} { INITTOKEN_NOVAL(RELOP)}
-{PLUS} { INITTOKEN_NOVAL(PLUS)}
-{MINUS} { INITTOKEN_NOVAL(MINUS)}
-{STAR} { INITTOKEN_NOVAL(STAR)}
-{DIV} { INITTOKEN_NOVAL(DIV)}
-{AND} { INITTOKEN_NOVAL(AND)}
-{OR} { INITTOKEN_NOVAL(OR)}
-{DOT} { INITTOKEN_NOVAL(DOT)}
-{NOT} { INITTOKEN_NOVAL(NOT)}
-{LP} { INITTOKEN_NOVAL(LP)}
-{RP} { INITTOKEN_NOVAL(RP)}
-{LB} { INITTOKEN_NOVAL(LB)}
-{RB} { INITTOKEN_NOVAL(RB)}
-{LC} { INITTOKEN_NOVAL(LC)}
-{RC} { INITTOKEN_NOVAL(RC)}
+{SEMI} { INITTOKEN_NOVAL(SEMI, yylineno)}
+{COMMA} { INITTOKEN_NOVAL(COMMA, yylineno)}
+{ASSIGNOP} { INITTOKEN_NOVAL(ASSIGNOP, yylineno)}
+{RELOP} { INITTOKEN_NOVAL(RELOP, yylineno)}
+{PLUS} { INITTOKEN_NOVAL(PLUS, yylineno)}
+{MINUS} { INITTOKEN_NOVAL(MINUS, yylineno)}
+{STAR} { INITTOKEN_NOVAL(STAR, yylineno)}
+{DIV} { INITTOKEN_NOVAL(DIV, yylineno)}
+{AND} { INITTOKEN_NOVAL(AND, yylineno)}
+{OR} { INITTOKEN_NOVAL(OR, yylineno)}
+{DOT} { INITTOKEN_NOVAL(DOT, yylineno)}
+{NOT} { INITTOKEN_NOVAL(NOT, yylineno)}
+{LP} { INITTOKEN_NOVAL(LP, yylineno)}
+{RP} { INITTOKEN_NOVAL(RP, yylineno)}
+{LB} { INITTOKEN_NOVAL(LB, yylineno)}
+{RB} { INITTOKEN_NOVAL(RB, yylineno)}
+{LC} { INITTOKEN_NOVAL(LC, yylineno)}
+{RC} { INITTOKEN_NOVAL(RC, yylineno)}
 "//" {
     char c = input();
     while(c != '\n') {c = input();}
@@ -139,10 +139,11 @@ TYPE int|float
 }
 %%
 
-struct TreeNode * init_node(char * name)
+struct TreeNode * init_node(char * name, int lineno)
 {
     struct TreeNode *p = (struct TreeNode *)malloc(sizeof(struct TreeNode));
     memset((void *)p, 0, sizeof(struct TreeNode));
     strcpy(p->name, name);
+    p->lineno = lineno;
     return p;
 }

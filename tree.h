@@ -11,7 +11,7 @@ struct TreeNode
         struct{
             struct Type *typeForExp;
             int leftFlag;
-        }
+        };
     } value;
     int lineno;
     struct TreeNode *child;
