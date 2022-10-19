@@ -89,6 +89,11 @@ ExtDef : Specifier ExtDecList SEMI {
         $$ = matchRule("ExtDef", child, 3, @1.first_line);
     }
 
+    | Specifier FunDec SEMI {
+        struct TreeNode * child[3] = {$1, $2, $3};
+        $$ = matchRule("ExtDef", child, 3, @1.first_line);
+    }
+
     | error SEMI {
         matchError(@1.first_line, "Error in ExtDef", $$);
     }

@@ -7,11 +7,23 @@
 #define HASHSIZE 0x3fff
 
 struct Symbol *nowFunc = NULL;
-
+struct SymbolStack symbolStack;
 struct Symbol *hashtable[HASHSIZE] = {};
 struct SymbolStack s;
 
 struct Type _int = {BASIC, T_INT}, _float = {BASIC, T_FLOAT};
+
+struct Symbol *getStackTop()
+{
+    return symbolStack.stack[symbolStack.tail];
+}
+
+void push()
+{
+    symbolStack.tail = symbolStack.tail + 1;
+}
+
+
 
 struct Type * copyType(struct Type *t)
 {
@@ -29,6 +41,21 @@ void semanticError(int type, int line, char *description)
     printf("Error type %d at Line %d: %s\n", type, line, description);
 }
 
+int checkFieldEqual(struct FieldList *f1, struct FieldList *f2)
+{
+    while(f1 != NULL && f2 != NULL)
+    {
+        if(checkTypeEqual(f1->type, f2->type) == 0)
+            return 0;
+        f1 = f1->next;
+        f2 = f2->next;
+    }
+    if(f1 != NULL || f2 != NULL)
+        return 0;
+
+    return 1;
+}
+
 int checkTypeEqual(struct Type *t1, struct Type *t2)
 {
     if(t1 == NULL || t2 == NULL)
@@ -42,9 +69,10 @@ int checkTypeEqual(struct Type *t1, struct Type *t2)
         return checkTypeEqual(t1->array.elem, t2->array.elem);   
     else 
     {
-        if(t1->structure.name == NULL || t2->structure.name == NULL)
-            return 0;
-        return strcmp(t1->structure.name, t2->structure.name) == 0;
+        // if(t1->structure.name == NULL || t2->structure.name == NULL)
+        //     return 0;
+        // return strcmp(t1->structure.name, t2->structure.name) == 0;
+        return checkFieldEqual(t1->structure.field, t2->structure.field);
     }
 }
 
@@ -422,7 +450,7 @@ void traverseForExp(struct TreeNode *p)
                 p->value.typeForExp = NULL;
                 return;
             }
-            if(s->flag != S_VAR)
+            else if(s->flag != S_VAR)
             {
                 semanticError(7, firstChild->lineno, "Struct name or func name can't be operator");
                 p->value.typeForExp = NULL;
@@ -443,6 +471,11 @@ void traverseForExp(struct TreeNode *p)
                 semanticError(11, firstChild->lineno, "Only func can be called");
                 p->value.typeForExp = NULL;
             }
+            // else if(s->func.hasDef == 0)
+            // {
+            //     semanticError(18, firstChild->lineno, "Func has not been defined");
+            //     p->value.typeForExp = s->func.returnType;
+            // }
             else
             {
                 checkFuncArgs(firstChild->next->next, s->func.args);
@@ -657,7 +690,7 @@ void traverseForExtDef(struct TreeNode *p)
     assert(strcmp("ExtDef", p->name) == 0);
     struct TreeNode *tmp = p->child->next, *specifier = p->child;
     struct Type *t = traverseForSpecifier(specifier);
-    if (strcmp("ExtDecList", tmp->name) == 0)
+    if(strcmp("ExtDecList", tmp->name) == 0)
     {
         if (t == NULL)
         //TODO():should insert into Symbol Table?
@@ -694,19 +727,50 @@ void traverseForExtDef(struct TreeNode *p)
         struct TreeNode *varlist = tmp->child->next->next;
         if (strcmp(varlist->name, "VarList") == 0)
             s->func.args = traverseForVarList(varlist);
-        
         else
             s->func.args = NULL;
+        
 
-        if (insert(s) == -1)
+        int flag = strcmp(tmp->next->name, "CompSt");
+        s->func.hasDef = (flag == 0);
+        struct Symbol *s1 = search(s->name); 
+
+        //func has not been defined
+        if(s1 == NULL)
         {
-            semanticError(4, tmp->lineno, "The name of Func has been used");
+            s->func.firstDeclareLine = tmp->lineno;
+            insert(s);
+        }
+        else
+        {
+            nowFunc = s1;
+
+            //Define a func more than 1 time.Or the name has been used
+            if((s1->flag != S_FUNC)||(flag == 0 && s1->func.hasDef == 1))
+                semanticError(4, tmp->lineno, "The name of Func has been used");
+            else
+            {
+                //check whether return type and args match
+                if(flag == 0)
+                    s1->func.hasDef = 1;
+                if(checkTypeEqual(s1->func.returnType, s->func.returnType) == 0 || checkFieldEqual(s1->func.args, s->func.args) == 0)
+                    semanticError(19, tmp->lineno, "The return type or the args in func declare and def don't match");
+            }
             freeFieldList(s->func.args);
             freeType(t);
             free(s);
         }
 
-        traverseForCompSt(tmp->next);
+
+        // if (insert(s) == -1)
+        // {
+        //     semanticError(4, tmp->lineno, "The name of Func has been used");
+        //     freeFieldList(s->func.args);
+        //     freeType(t);
+        //     free(s);
+        // }
+        if(flag == 0)
+            traverseForCompSt(tmp->next);
     }
     else
     {
@@ -721,6 +785,17 @@ void traverse()
     {
         traverseForExtDef(extDefList->child);
         extDefList = extDefList->child->next;
+    }
+    for(int i = 0; i < HASHSIZE; ++i)
+    {
+        struct Symbol *tmp = hashtable[i];
+        while (tmp != NULL)
+        {
+            if(tmp->flag == S_FUNC && tmp->func.hasDef == 0)
+                semanticError(18, tmp->func.firstDeclareLine, "Undefined function");
+            tmp = tmp->hashLinkNext;
+        }
+        
     }
 }
 

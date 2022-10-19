@@ -1,0 +1,6 @@
+
+int main()
+{
+    struct Type t;
+    t.a = 1;
+}

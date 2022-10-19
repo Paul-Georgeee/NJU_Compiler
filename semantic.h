@@ -32,15 +32,16 @@ struct Symbol{
         struct Type *var;
         struct{
             struct Type *returnType;
-            int argn;
             struct FieldList* args;
+            int hasDef;
+            int firstDeclareLine;
         } func;
         struct FieldList * structure;
         
     };
-    struct Symbol *hashLinkNext;
-    // struct Symbol *hashLinkNext, *hashLinkbefore;
-    // struct Symbol *blockLinkNext;
+    // struct Symbol *hashLinkNext;
+    struct Symbol *hashLinkNext, *hashLinkbefore;
+    struct Symbol *blockLinkNext;
 };
 
 
@@ -50,6 +51,7 @@ struct SymbolStack
     int tail;
 };
 
+int checkTypeEqual(struct Type *t1, struct Type *t2);
 struct Type * traverseForSpecifier(struct TreeNode* p);
 void traverseForCompSt(struct TreeNode *p);
 struct Symbol * traverseForVarDec(struct TreeNode * p, struct Type *t);
