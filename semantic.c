@@ -8,10 +8,30 @@
 
 struct Symbol *nowFunc = NULL;
 struct SymbolStack symbolStack;
-struct Symbol *hashtable[HASHSIZE] = {};
+struct Symbol hashtable[HASHSIZE] = {};
 struct SymbolStack s;
 
 struct Type _int = {BASIC, T_INT}, _float = {BASIC, T_FLOAT};
+void freeSymbol(struct Symbol *s)
+{
+    memset((void *)s, 0, sizeof(struct Symbol));
+    switch (s->flag)
+    {
+    case S_VAR:
+        freeType(s->var);
+        break;
+    case S_FUNC:
+        freeType(s->func.returnType);
+        freeFieldList(s->func.args, 1);
+        break;
+    case S_STRUCT:
+        freeFieldList(s->structure, 1);
+        break;
+    default:
+        break;
+    }
+    free(s);
+}
 
 struct Symbol *getStackTop()
 {
@@ -21,6 +41,23 @@ struct Symbol *getStackTop()
 void push()
 {
     symbolStack.tail = symbolStack.tail + 1;
+    symbolStack.stack[symbolStack.tail] = NULL;
+}
+
+void pop()
+{
+    struct Symbol * s = symbolStack.stack[symbolStack.tail];
+    symbolStack.tail = symbolStack.tail - 1;
+    while(s != NULL)
+    {
+        struct Symbol *tmp = s;
+        s = s->blockLinkNext;
+        tmp->hashLinkbefore->hashLinkNext = tmp->hashLinkNext;
+        if(tmp->hashLinkNext != NULL)
+            tmp->hashLinkNext->hashLinkbefore = tmp->hashLinkbefore;
+    
+        freeSymbol(tmp);
+    }
 }
 
 
@@ -76,19 +113,27 @@ int checkTypeEqual(struct Type *t1, struct Type *t2)
     }
 }
 
-void freeFieldList(struct FieldList *f)
+void freeFieldList(struct FieldList *f, int freeTypeFlag)
 {
+    if(f == NULL)
+        return;
     struct FieldList *tmp;
     while(f != NULL)
     {
         tmp = f;
         f = f->next;
+        
+        if(freeTypeFlag == 1)
+            freeType(tmp->type);
+
         free(tmp);
     }
 }
 
 void freeType(struct Type *t)
 {
+    if(t == NULL)
+        return;
     if(t->kind == BASIC)
         return;
     else if(t->kind == STRUCTURE)
@@ -142,7 +187,7 @@ void checkFuncArgs(struct TreeNode * practicalArgs, struct FieldList* formalArgs
         if(checkTypeEqual(f1->type, tmp1->type) == 0)
         {
             semanticError(9, practicalArgs->lineno, "The type of formal args doesn't match with practical type");
-            freeFieldList(tmp2);
+            freeFieldList(tmp2, 0);
             return;
         }
         f1 = f1->next;
@@ -151,7 +196,7 @@ void checkFuncArgs(struct TreeNode * practicalArgs, struct FieldList* formalArgs
     //the number of args is not equal
     if(f1 != NULL || tmp1 != NULL)
         semanticError(9, practicalArgs->lineno, "The number of practical args an formal agrs does not match"); 
-    freeFieldList(tmp2);
+    freeFieldList(tmp2, 0);
     return;
 }   
 
@@ -202,6 +247,7 @@ struct Symbol *traverseForVarDec(struct TreeNode *p, struct Type *t)
     s->flag = S_VAR;
     s->name = vardec->child->value.type_str;
     s->var = tmp1;
+    
     return s;
 }
 
@@ -229,14 +275,13 @@ struct FieldList *traverseForVarList(struct TreeNode *p)
         if (insert(s) == -1)
         {
             semanticError(15, paramDec->lineno, "Var in func args is redefined");
-            freeType(t);
-            free(s);
+            freeSymbol(s);
             continue;
         }
         tmp1 = (struct FieldList *)malloc(sizeof(struct FieldList));
         tmp1->next = tmp2;
         tmp1->name = s->name;
-        tmp1->type = t;
+        tmp1->type = s->var;
 
         tmp2 = tmp1;
     }
@@ -277,8 +322,7 @@ struct FieldList *formFieldlist(struct TreeNode *p) // p is a deflist
             if (insert(s) == -1)
             {
                 semanticError(15, dec->lineno, "Var in struct is redefined");
-                freeType(copyT);
-                free(s);
+                freeSymbol(s);
                 continue;
             }
 
@@ -349,20 +393,26 @@ struct Type *traverseForSpecifier(struct TreeNode *p)
         else
         {
             int flag = strcmp(structTag->name, "OptTag");
+            struct Symbol *symbol = (struct Symbol *)malloc(sizeof(struct Symbol));
+            symbol->structure = NULL;
+            if(flag == 0)
+            {
+                symbol->name = structTag->child->value.type_str;
+                if (insert(symbol) == -1)
+                {
+                    semanticError(16, structTag->lineno, "The name of the Struct has been use");
+                    freeSymbol(symbol);
+                    return NULL;
+                }
+            }
+
+            push();
             struct TreeNode *deflist = flag == 0 ? structTag->next->next : structTag->next;
             struct FieldList *f = formFieldlist(deflist);
             if (flag == 0)
             {
-                struct Symbol *symbol = (struct Symbol *)malloc(sizeof(struct Symbol));
                 symbol->flag = S_STRUCT;
-                symbol->name = structTag->child->value.type_str;
                 symbol->structure = f;
-                if (insert(symbol) == -1)
-                {
-                    semanticError(16, structTag->lineno, "The name of the Struct has been use");
-                    free(symbol);
-                    freeFieldList(f);
-                }
                 t->structure.name = structTag->child->name;
             }
             //When defining a anonymous struct(such as struct {int a;};),
@@ -371,6 +421,7 @@ struct Type *traverseForSpecifier(struct TreeNode *p)
             else
                 t->structure.name = NULL;
             t->structure.field = f;
+            pop();
         }
         return t;
     }
@@ -403,8 +454,7 @@ void traverseForDefList(struct TreeNode *p)
             if (insert(s) == -1)
             {
                 semanticError(3, dec->lineno, "The name of Var has been used");    
-                freeType(s->var);
-                free(s);
+                freeSymbol(s);
             }
             else
             {
@@ -661,11 +711,13 @@ void traverseForStmt(struct TreeNode *p)
         traverseForStmt(firstStmt);
     }
     else if (strcmp(firstChild->name, "CompSt") == 0)
-        traverseForCompSt(firstChild);
+        traverseForCompSt(firstChild, 1);
 }
 
-void traverseForCompSt(struct TreeNode *p)
+void traverseForCompSt(struct TreeNode *p, int isPush)
 {
+    if(isPush == 1)
+        push();
     assert(strcmp(p->name, "CompSt") == 0);
     struct TreeNode *deflist = p->child->next;
     struct TreeNode *stmtlist = deflist->next;
@@ -683,6 +735,8 @@ void traverseForCompSt(struct TreeNode *p)
             stmtlist = stmtlist->child->next;
         }
     }
+    if(isPush == 1)
+        pop();
 }
 
 void traverseForExtDef(struct TreeNode *p)
@@ -704,8 +758,7 @@ void traverseForExtDef(struct TreeNode *p)
             if (insert(s) == -1)
             {
                 semanticError(3, vardec->lineno, "The name of Var has been used");
-                free(s);
-                free(copyT);
+                freeSymbol(s);
             }
             
             if (vardec->next != NULL)
@@ -722,6 +775,12 @@ void traverseForExtDef(struct TreeNode *p)
         s->flag = S_FUNC;
         s->func.returnType = t;
 
+        struct Symbol *s1 = search(s->name); 
+        if(s1 == NULL)
+            insert(s);
+
+        push();
+
         nowFunc = s;
 
         struct TreeNode *varlist = tmp->child->next->next;
@@ -733,14 +792,10 @@ void traverseForExtDef(struct TreeNode *p)
 
         int flag = strcmp(tmp->next->name, "CompSt");
         s->func.hasDef = (flag == 0);
-        struct Symbol *s1 = search(s->name); 
 
         //func has not been defined
         if(s1 == NULL)
-        {
             s->func.firstDeclareLine = tmp->lineno;
-            insert(s);
-        }
         else
         {
             nowFunc = s1;
@@ -756,30 +811,20 @@ void traverseForExtDef(struct TreeNode *p)
                 if(checkTypeEqual(s1->func.returnType, s->func.returnType) == 0 || checkFieldEqual(s1->func.args, s->func.args) == 0)
                     semanticError(19, tmp->lineno, "The return type or the args in func declare and def don't match");
             }
-            freeFieldList(s->func.args);
-            freeType(t);
-            free(s);
+            freeSymbol(s);
         }
 
-
-        // if (insert(s) == -1)
-        // {
-        //     semanticError(4, tmp->lineno, "The name of Func has been used");
-        //     freeFieldList(s->func.args);
-        //     freeType(t);
-        //     free(s);
-        // }
         if(flag == 0)
-            traverseForCompSt(tmp->next);
+            traverseForCompSt(tmp->next, 0);
+        pop();
     }
     else
-    {
         return;
-    }
 }
 
 void traverse()
-{
+{   
+    memset((void *)&s, 0, sizeof(struct SymbolStack));
     struct TreeNode *extDefList = root->child;
     while (extDefList != NULL)
     {
@@ -788,7 +833,7 @@ void traverse()
     }
     for(int i = 0; i < HASHSIZE; ++i)
     {
-        struct Symbol *tmp = hashtable[i];
+        struct Symbol *tmp = hashtable[i].hashLinkNext;
         while (tmp != NULL)
         {
             if(tmp->flag == S_FUNC && tmp->func.hasDef == 0)
@@ -802,7 +847,7 @@ void traverse()
 struct Symbol *search(char *name)
 {
     unsigned int hashval = symbolHash(name);
-    struct Symbol *s = hashtable[hashval];
+    struct Symbol *s = hashtable[hashval].hashLinkNext;
     while (s != NULL)
     {
         if (strcmp(name, s->name) == 0)
@@ -814,15 +859,28 @@ struct Symbol *search(char *name)
 
 int insert(struct Symbol *s)
 {
-    if (search(s->name) != NULL)
+    struct Symbol *tmp = search(s->name);
+    if (tmp != NULL && (tmp->depth == symbolStack.tail || tmp->flag != s->flag))
         return -1;
+
     unsigned int hashval = symbolHash(s->name);
-    s->hashLinkNext = hashtable[hashval];
-    hashtable[hashval] = s;
-    // printf("insert %s\n", hashtable[hashval]->name);
+    s->depth = symbolStack.tail;
+
+    if(hashtable[hashval].hashLinkNext != NULL)
+        hashtable[hashval].hashLinkNext->hashLinkbefore = s;
+    s->hashLinkNext = hashtable[hashval].hashLinkNext;
+    hashtable[hashval].hashLinkNext = s;
+    s->hashLinkbefore = &(hashtable[hashval]);
+
+    
+    s->blockLinkNext = symbolStack.stack[symbolStack.tail];
+    symbolStack.stack[symbolStack.tail] = s;
+
     return 0;
+    // s->hashLinkNext = hashtable[hashval];
+    // hashtable[hashval] = s;
+    // printf("insert %s\n", hashtable[hashval]->name);
 }
-void printType(struct Type *t);
 
 void printFieldList(struct FieldList *f)
 {
@@ -871,7 +929,7 @@ void printHashTable()
 {
     for (int i = 0; i < HASHSIZE; ++i)
     {
-        struct Symbol *tmp = hashtable[i];
+        struct Symbol *tmp = hashtable[i].hashLinkNext;
         while (tmp != NULL)
         {
             switch (tmp->flag)

@@ -27,6 +27,7 @@ struct FieldList{
 struct Symbol{
     enum {S_FUNC, S_VAR, S_STRUCT} flag;
     char *name;
+    int depth;
     union 
     {
         struct Type *var;
@@ -51,10 +52,13 @@ struct SymbolStack
     int tail;
 };
 
+void freeFieldList(struct FieldList *f, int freeTypeFlag);
+void freeType(struct Type *t);
 int checkTypeEqual(struct Type *t1, struct Type *t2);
 struct Type * traverseForSpecifier(struct TreeNode* p);
-void traverseForCompSt(struct TreeNode *p);
+void traverseForCompSt(struct TreeNode *p, int isPush);
 struct Symbol * traverseForVarDec(struct TreeNode * p, struct Type *t);
 void traverseForExp(struct TreeNode *p);
 struct Symbol * search(char *name);
 int insert(struct Symbol * s);
+void printType(struct Type *t);

@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
     { 
         //printTree(root, 0);
         traverse();
-        //printHashTable();
+        // printHashTable();
     }
     freeTree(root);
     return 0;

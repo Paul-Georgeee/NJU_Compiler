@@ -1,6 +1,26 @@
+int f()
+{
+    return 1;
+}
 
+struct P{
+    int x, y;
+    int k[100];
+};
+
+int g(struct P x)
+{
+    return -1;
+}
+
+int h(int o[10])
+{
+    return 100;
+}
 int main()
 {
-    struct Type t;
-    t.a = 1;
+    struct P p;
+    int m[10];
+
+    h(m);
 }
