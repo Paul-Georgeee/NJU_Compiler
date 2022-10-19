@@ -23,9 +23,9 @@ int main(int argc, char ** argv)
     yyparse();
     if(wrong == 0)
     { 
-        printTree(root, 0);
+        //printTree(root, 0);
         traverse();
-        printHashTable();
+        //printHashTable();
     }
     freeTree(root);
     return 0;

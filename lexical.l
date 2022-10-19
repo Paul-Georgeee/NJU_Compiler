@@ -126,6 +126,7 @@ TYPE int|float
         now = input();
     }
 }
+\t {has_error = 0;}
 " " {has_error = 0;}
 \n {yycolumn = 1;}
 . {
