@@ -10,7 +10,7 @@ struct Type{
         } array;
         struct 
         {
-            struct FieldList* field;
+            struct FieldList* field;  //member list of the struct
             char *name;
         }structure;
         
@@ -27,22 +27,21 @@ struct FieldList{
 struct Symbol{
     enum {S_FUNC, S_VAR, S_STRUCT} flag;
     char *name;
-    int depth;
+    int depth;                              //scope
     union 
     {
-        struct Type *var;
+        struct Type *var;                   //var Type
         struct{
-            struct Type *returnType;
-            struct FieldList* args;
-            int hasDef;
-            int firstDeclareLine;
+            struct Type *returnType;        //return Type
+            struct FieldList* args;         //args list
+            int hasDef;                     //Have this func been defined? Used for complementing func declare
+            int firstDeclareLine;           //line number where this func is first declared or defined
         } func;
-        struct FieldList * structure;
+        struct FieldList * structure;       //struct member list
         
     };
-    // struct Symbol *hashLinkNext;
-    struct Symbol *hashLinkNext, *hashLinkbefore;
-    struct Symbol *blockLinkNext;
+    struct Symbol *hashLinkNext, *hashLinkbefore;   //doubly linked list in every hash backet
+    struct Symbol *blockLinkNext;                   //linked list in the same scope
 };
 
 

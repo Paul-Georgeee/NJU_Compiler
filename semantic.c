@@ -14,7 +14,6 @@ struct SymbolStack s;
 struct Type _int = {BASIC, T_INT}, _float = {BASIC, T_FLOAT};
 void freeSymbol(struct Symbol *s)
 {
-    memset((void *)s, 0, sizeof(struct Symbol));
     switch (s->flag)
     {
     case S_VAR:
@@ -61,23 +60,45 @@ void pop()
 }
 
 
+struct FieldList* copyFieldList(struct FieldList *f)
+{
+    if(f == NULL)
+        return NULL;
+    struct FieldList *f1 = (struct FieldList *)malloc(sizeof(struct FieldList));
+    f1->name = f->name;
+    f1->type = copyType(f->type);
+    f1->next = copyFieldList(f->next);
+    return f1;
+}
 
 struct Type * copyType(struct Type *t)
 {
-    assert(t->kind != ARRAY);
+    if(t == NULL)
+        return NULL;
     if(t->kind == BASIC)
         return t;
-
-    struct Type * ret = (struct Type *)malloc(sizeof(struct Type));
-    memcpy(ret, t, sizeof(struct Type));
-    return ret;
+    else if(t->kind == ARRAY)
+    {
+        struct Type * ret = (struct Type *)malloc(sizeof(struct Type));
+        ret->kind = ARRAY;
+        ret->array.size = t->array.size;
+        ret->array.elem = copyType(t->array.elem);
+        return ret;
+    }
+    else
+    {
+        struct Type * ret = (struct Type *)malloc(sizeof(struct Type));
+        memcpy(ret, t, sizeof(struct Type));
+        ret->structure.field = copyFieldList(t->structure.field);
+        return ret;
+    }
 }
 
 void semanticError(int type, int line, char *description)
 {
     printf("Error type %d at Line %d: %s\n", type, line, description);
 }
-
+//1:equal 0:not equal
 int checkFieldEqual(struct FieldList *f1, struct FieldList *f2)
 {
     while(f1 != NULL && f2 != NULL)
@@ -92,7 +113,7 @@ int checkFieldEqual(struct FieldList *f1, struct FieldList *f2)
 
     return 1;
 }
-
+//1:equal 0:not equal
 int checkTypeEqual(struct Type *t1, struct Type *t2)
 {
     if(t1 == NULL || t2 == NULL)
@@ -105,12 +126,7 @@ int checkTypeEqual(struct Type *t1, struct Type *t2)
     else if(t1->kind == ARRAY)
         return checkTypeEqual(t1->array.elem, t2->array.elem);   
     else 
-    {
-        // if(t1->structure.name == NULL || t2->structure.name == NULL)
-        //     return 0;
-        // return strcmp(t1->structure.name, t2->structure.name) == 0;
         return checkFieldEqual(t1->structure.field, t2->structure.field);
-    }
 }
 
 void freeFieldList(struct FieldList *f, int freeTypeFlag)
@@ -138,6 +154,7 @@ void freeType(struct Type *t)
         return;
     else if(t->kind == STRUCTURE)
     {
+        freeFieldList(t->structure.field, 1);
         free(t);
         return;
     }
@@ -208,6 +225,8 @@ struct Type * checkStructField(struct FieldList *f, char *name)
         return NULL;
     while(f != NULL)
     {
+        if(f->name == NULL)
+            continue;
         if(strcmp(f->name, name) == 0)
             return f->type;
         f = f->next;
@@ -286,7 +305,7 @@ struct FieldList *traverseForVarList(struct TreeNode *p)
         tmp1 = (struct FieldList *)malloc(sizeof(struct FieldList));
         tmp1->next = tmp2;
         tmp1->name = s->name;
-        tmp1->type = s->var;
+        tmp1->type = copyType(s->var);
 
         tmp2 = tmp1;
     }
@@ -338,7 +357,7 @@ struct FieldList *formFieldlist(struct TreeNode *p) // p is a deflist
             
             tmp1 = (struct FieldList *)malloc(sizeof(struct FieldList));
             tmp1->name = s->name;
-            tmp1->type = s->var;
+            tmp1->type = copyType(s->var);
             tmp1->next = tmp2;
             tmp2 = tmp1;
         }
@@ -391,7 +410,7 @@ struct Type *traverseForSpecifier(struct TreeNode *p)
             //but when it is a struct type, the struct field is shared
             //And it will be freed when freeing the struct symbol in symbol table 
             
-            t->structure.field = symbol->structure;
+            t->structure.field = copyFieldList(symbol->structure);
             t->structure.name = symbol->name;
         }
         //Define a struct such as struct Test{int a;};
@@ -420,14 +439,14 @@ struct Type *traverseForSpecifier(struct TreeNode *p)
             {
                 symbol->flag = S_STRUCT;
                 symbol->structure = f;
-                t->structure.name = structTag->child->name;
+                t->structure.name = structTag->child->value.type_str;
             }
             //When defining a anonymous struct(such as struct {int a;};),
             //it will not be inserted into symbol table.
             //May lead to memory leak here
             else
                 t->structure.name = NULL;
-            t->structure.field = f;
+            t->structure.field = copyFieldList(f);
             pop();
         }
         return t;
@@ -853,8 +872,8 @@ void traverse()
                 semanticError(18, tmp->func.firstDeclareLine, "Undefined function");
             tmp = tmp->hashLinkNext;
         }
-        
     }
+    pop();
 }
 
 //Search in hash table
