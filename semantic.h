@@ -52,13 +52,41 @@ struct SymbolStack
     int tail;
 };
 
+//For print error message
+void semanticError(int type, int line, char *description);
+//For copy a type
+struct Type * copyType(struct Type *t);
+//For hashtable operation
+unsigned int symbolHash(char *name);
+struct Symbol *search(char *name);
+int insert(struct Symbol *s);
+//For scope stack operation
+struct Symbol *getStackTop();
+void push();
+void pop();
+//For free memory
 void freeFieldList(struct FieldList *f, int freeTypeFlag);
+void freeSymbol(struct Symbol *s);
 void freeType(struct Type *t);
+//For check type and membership so on
+int checkFieldEqual(struct FieldList *f1, struct FieldList *f2);
 int checkTypeEqual(struct Type *t1, struct Type *t2);
-struct Type * traverseForSpecifier(struct TreeNode* p);
-void traverseForCompSt(struct TreeNode *p, int isPush);
-struct Symbol * traverseForVarDec(struct TreeNode * p, struct Type *t);
+void checkFuncArgs(struct TreeNode * practicalArgs, struct FieldList* formalArgs);
+struct Type * checkStructField(struct FieldList *f, char *name);
+//For traverse the syntax tree
+struct Symbol *traverseForVarDec(struct TreeNode *p, struct Type *t);
+struct FieldList *traverseForVarList(struct TreeNode *p);
+struct FieldList *formFieldlist(struct TreeNode *p); // p is a deflist, and this func is used to travser the struct field
+struct Type *traverseForSpecifier(struct TreeNode *p);
+void traverseForDefList(struct TreeNode *p);
 void traverseForExp(struct TreeNode *p);
-struct Symbol * search(char *name);
-int insert(struct Symbol * s);
+void traverseForStmt(struct TreeNode *p);
+void traverseForCompSt(struct TreeNode *p, int isPush);
+void traverseForExtDef(struct TreeNode *p);
+void traverse();
+//For debug
+void printFieldList(struct FieldList *f);
 void printType(struct Type *t);
+void printHashTable();
+
+
