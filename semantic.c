@@ -435,6 +435,7 @@ struct Type *traverseForSpecifier(struct TreeNode *p)
             push();
             struct TreeNode *deflist = flag == 0 ? structTag->next->next : structTag->next;
             struct FieldList *f = formFieldlist(deflist);
+            t->structure.field = copyFieldList(f);
             if (flag == 0)
             {
                 symbol->flag = S_STRUCT;
@@ -443,10 +444,12 @@ struct Type *traverseForSpecifier(struct TreeNode *p)
             }
             //When defining a anonymous struct(such as struct {int a;};),
             //it will not be inserted into symbol table.
-            //May lead to memory leak here
+            //And fieldList will not be used so free it
             else
+            {
                 t->structure.name = NULL;
-            t->structure.field = copyFieldList(f);
+                freeFieldList(f, 1);
+            }
             pop();
         }
         return t;

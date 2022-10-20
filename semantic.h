@@ -53,8 +53,6 @@ struct SymbolStack
 
 //For print error message
 void semanticError(int type, int line, char *description);
-//For copy a type
-struct Type * copyType(struct Type *t);
 //For hashtable operation
 unsigned int symbolHash(char *name);
 struct Symbol *search(char *name);
@@ -63,6 +61,9 @@ int insert(struct Symbol *s);
 struct Symbol *getStackTop();
 void push();
 void pop();
+//For copy
+struct FieldList* copyFieldList(struct FieldList *f);
+struct Type * copyType(struct Type *t);
 //For free memory
 void freeFieldList(struct FieldList *f, int freeTypeFlag);
 void freeSymbol(struct Symbol *s);
