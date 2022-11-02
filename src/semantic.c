@@ -11,7 +11,7 @@ struct SymbolStack symbolStack;
 struct Symbol hashtable[HASHSIZE] = {};
 struct SymbolStack s;
 
-struct Type _int = {BASIC, T_INT}, _float = {BASIC, T_FLOAT};
+struct Type _int = {BASIC, {T_INT}}, _float = {BASIC, {T_FLOAT}};
 void freeSymbol(struct Symbol *s)
 {
     switch (s->flag)
@@ -181,7 +181,7 @@ void checkFuncArgs(struct TreeNode * practicalArgs, struct FieldList* formalArgs
         return;
 
     //get practical agrs
-    struct FieldList *tmp1, *tmp2 = NULL;
+    struct FieldList *tmp1 = NULL, *tmp2 = NULL;
     struct TreeNode *p = practicalArgs;
     while(p != NULL)
     {
@@ -369,7 +369,6 @@ struct FieldList *formFieldlist(struct TreeNode *p) // p is a deflist
 //get the type and the defination of the struct
 struct Type *traverseForSpecifier(struct TreeNode *p)
 {
-    struct Type *t = (struct Type *)malloc(sizeof(struct Type));
     //Basic Type
     if (strcmp(p->child->name, "TYPE") == 0)
     {

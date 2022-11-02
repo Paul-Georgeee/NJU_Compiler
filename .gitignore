@@ -5,3 +5,4 @@ syntax.tab.c
 lex.yy.c 
 main
 Code/
+build/

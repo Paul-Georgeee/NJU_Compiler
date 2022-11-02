@@ -1,21 +1,30 @@
 .PHONY:code clean
-all:lexical.l main.c syntax.y semantic.c
-	bison -d -v syntax.y
-	flex lexical.l
-	gcc-7 main.c syntax.tab.c semantic.c -lfl -ly -g -o main
+BUILD_DIR := ./build
+CFLAGS := -Wall -O2 -g -I./include
+CFILES := $(shell find ./src -name "*.c" ! -name "syntax.tab.c")
+OBJS := $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(basename $(notdir $(CFILES)))))
+OBJS += build/syntax.tab.o
+all: syntax $(OBJS) 
+	gcc-7 $(OBJS) -lfl -ly -o $(BUILD_DIR)/main
 
-run:all
-	./main test.cmm
+syntax: src/syntax.y src/lexical.l
+	@mkdir -p build
+	bison -d -v -t src/syntax.y -o build/syntax.tab.c
+	flex -o build/lex.yy.c src/lexical.l
+	gcc -c build/syntax.tab.c $(CFLAGS) -o build/syntax.tab.o
 
-debug:lexical.l main.c syntax.y
-	bison -d -v -t syntax.y
-	flex lexical.l
-	gcc-7 main.c syntax.tab.c -lfl -ly -o main
-	./main test.cmm >temp.txt 2>&1
+$(BUILD_DIR)/%.o: src/%.c
+	@mkdir -p $(dir $@)
+	gcc -c $(CFLAGS) $< -o $@
+
+
+	
+run: all
+	build/main test.cmm
 
 clean:
-	rm syntax.tab.h syntax.tab.c lex.yy.c main
-
+	rm -r build
+	
 code:
-	cp syntax.y lexical.l main.c semantic.c semantic.h tree.h ./Code
+	cp src/* include/* Code
 
