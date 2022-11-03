@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "dubug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "./build/main",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "~/NJU_Compiler",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "将反汇编风格设置为 Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
+        }
+    ],
+    "version": "2.0.0"
+}

@@ -1,0 +1,62 @@
+[
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-Wall",
+            "-O2",
+            "-g",
+            "-I./include",
+            "-o",
+            "build/syntax.tab.o",
+            "build/syntax.tab.c"
+        ],
+        "directory": "/home/xyb/NJU_Compiler",
+        "file": "build/syntax.tab.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-Wall",
+            "-O2",
+            "-g",
+            "-I./include",
+            "-o",
+            "build/IRGenerator.o",
+            "src/IRGenerator.c"
+        ],
+        "directory": "/home/xyb/NJU_Compiler",
+        "file": "src/IRGenerator.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-Wall",
+            "-O2",
+            "-g",
+            "-I./include",
+            "-o",
+            "build/main.o",
+            "src/main.c"
+        ],
+        "directory": "/home/xyb/NJU_Compiler",
+        "file": "src/main.c"
+    },
+    {
+        "arguments": [
+            "gcc",
+            "-c",
+            "-Wall",
+            "-O2",
+            "-g",
+            "-I./include",
+            "-o",
+            "build/semantic.o",
+            "src/semantic.c"
+        ],
+        "directory": "/home/xyb/NJU_Compiler",
+        "file": "src/semantic.c"
+    }
+]
