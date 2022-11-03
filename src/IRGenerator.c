@@ -1,6 +1,6 @@
-#include "IRGenerator.h"
 #include "tree.h"
 #include "semantic.h"
+#include "IRGenerator.h"
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -72,7 +72,7 @@ struct Operand* genBasicVariable(char *name)
 {
     struct Operand *p = (struct Operand *)malloc(sizeof(struct Operand));
     p->kind = BASCIVAR;
-    p->varName = name;
+    p->name = name;
     return p;
 }
 
@@ -113,6 +113,8 @@ enum InterCodeKind determineKind(struct Operand* right, struct Operand* left)
         assert(right->kind == BASCIVAR && right->kind == CONSTANT_FLOAT && right->kind == CONSTANT_INT);
         return L_DEREF;
     }
+    assert(0);
+    return 0;
 }
 
 void translateExp(struct TreeNode* exp, struct Operand* place)
@@ -177,14 +179,142 @@ void translateExp(struct TreeNode* exp, struct Operand* place)
             genBinaryop(MINUS, place, tmp1, tmp2);
         else if(strcmp(secondChild->name, "STAR") == 0)
             genBinaryop(STAR, place, tmp1, tmp2);
-        else if(strcmp(secondChild->name, "DIV"));
+        else if(strcmp(secondChild->name, "DIV") == 0)
             genBinaryop(DIV, place, tmp1, tmp2);
         else
             assert(0);
     }
 }
 
-void translateCond(struct TreeeNode* exp, struct Operand* labelTrue, struct Operand *labelFalse)
+void translateCond(struct TreeNode* exp, struct Operand* labelTrue, struct Operand *labelFalse)
 {
     ;
+}
+
+void printOperandName(struct Operand *op)
+{
+    switch (op->kind)
+    {
+        case CONSTANT_FLOAT:
+            printf("#%f", op->constantValueFloat);
+            break;
+        case CONSTANT_INT:
+            printf("#%d", op->constantValueInt);
+            break;
+        default:
+            printf("%s", op->name);
+            break;
+    }
+}
+
+#define PRINTBINARYOP(op)\
+{\
+    if(tmp->binaryop.result->kind == BASCIVAR)\
+    {\
+        assert(tmp->binaryop.op1->kind == BASCIVAR || tmp->binaryop.op1->kind == CONSTANT_INT || tmp->binaryop.op1->kind == CONSTANT_FLOAT);\
+        assert(tmp->binaryop.op2->kind == BASCIVAR || tmp->binaryop.op2->kind == CONSTANT_INT || tmp->binaryop.op2->kind == CONSTANT_FLOAT);\
+    }\
+    else if(tmp->binaryop.result->kind == ADDRESS)\
+    {\
+        assert(tmp->binaryop.op1->kind == ADDRESS || tmp->binaryop.op1->kind == CONSTANT_INT);\
+        assert(tmp->binaryop.op2->kind == ADDRESS || tmp->binaryop.op2->kind == CONSTANT_INT);\
+    }\
+    else\
+        assert(0);\
+    printf("%s := ", tmp->binaryop.result->name);\
+    printOperandName(tmp->binaryop.op1);\
+    printf(op);\
+    printOperandName(tmp->binaryop.op2);\
+    printf("\n");\
+}
+
+void printIR()
+{
+    struct InterCode *tmp = irList.head->next;
+    while (tmp != irList.head)
+    {
+        switch(tmp->kind)
+        {
+            case LABELDEF:
+                assert(tmp->noresult.op->kind == LABEL);
+                printf("LABEL %s :\n", tmp->noresult.op->name);
+                break;
+            case FUNCDEF:
+                assert(tmp->noresult.op->kind == FUNC);
+                printf("FUNCTION %s :\n", tmp->noresult.op->name);
+                break;
+            case ASSIGN:
+                assert((tmp->unaryop.left->kind == BASCIVAR && (tmp->unaryop.right->kind == BASCIVAR || tmp->unaryop.right->kind == CONSTANT_FLOAT || tmp->unaryop.right->kind == CONSTANT_INT)) || (tmp->unaryop.left->kind == ADDRESS && (tmp->unaryop.right->kind == ADDRESS || tmp->unaryop.right->kind == CONSTANT_INT)));
+                printf("%s := ", tmp->unaryop.left->name);
+                printOperandName(tmp->unaryop.right);
+                printf("\n");
+                break;
+            case PLUS:
+                PRINTBINARYOP(" + ")
+                break;
+            case MINUS:
+                PRINTBINARYOP(" - ")
+                break;
+            case STAR:
+                PRINTBINARYOP(" * ")
+                break;
+            case DIV:
+                PRINTBINARYOP(" / ")
+                break;
+            case REF:
+                assert(tmp->unaryop.left->kind == ADDRESS && tmp->unaryop.right->kind == REFVAR);
+                printf("%s := &%s\n", tmp->unaryop.left->name, tmp->unaryop.right->name);
+                break;
+            case R_DEREF:
+                assert(tmp->unaryop.left->kind == BASCIVAR && tmp->unaryop.right->kind == ADDRESS);
+                printf("%s := *%s\n", tmp->unaryop.left->name, tmp->unaryop.right->name);
+                break;
+            case L_DEREF:
+                assert(tmp->unaryop.left->kind == ADDRESS && (tmp->unaryop.right->kind == BASCIVAR || tmp->unaryop.right->kind == CONSTANT_FLOAT || tmp->unaryop.right->kind == CONSTANT_INT));
+                printf("*%s := ", tmp->unaryop.left->name);
+                printOperandName(tmp->unaryop.right);
+                printf("\n");
+                break;
+            case GOTO:
+                assert(tmp->noresult.op->kind == LABEL);
+                printf("GOTO %s\n", tmp->noresult.op->name);
+                break;
+            case IF:
+                assert(tmp->ifop.result->kind == LABEL);
+                assert(tmp->ifop.op1->kind == BASCIVAR || tmp->ifop.op1->kind == CONSTANT_FLOAT || tmp->ifop.op1->kind == CONSTANT_INT);
+                assert(tmp->ifop.op2->kind == BASCIVAR || tmp->ifop.op2->kind == CONSTANT_FLOAT || tmp->ifop.op2->kind == CONSTANT_INT);
+                char relop[6][4] = {"==", "!=", "<", ">", "<=", ">="};
+                printf("IF %s %s %s GOTO %s\n", tmp->ifop.op1->name, relop[tmp->ifop.relop], tmp->ifop.op2->name, tmp->ifop.result->name);
+                break;
+            case RETURN:
+                assert(tmp->noresult.op->kind == BASCIVAR);
+                printf("RETURN %s\n", tmp->noresult.op->name);
+                break;
+            case MALLOC:
+                assert(tmp->unaryop.left->kind == BASCIVAR && tmp->unaryop.right->kind == CONSTANT_INT);
+                printf("DEC %s %d\n", tmp->unaryop.left->name, tmp->unaryop.right->constantValueInt);
+                break;
+            case ARG:
+                if(tmp->noresult.op->kind == REFVAR)
+                    printf("AGR &%s\n", tmp->noresult.op->name);
+                else
+                {
+                    printf("ARG ");
+                    printOperandName(tmp->noresult.op);
+                    printf("\n");
+                }
+            case FUNCALL:
+                break;
+            case PARAM:
+                break;
+            case READ:
+                break;
+            case WRITE:
+                break;
+            default:
+                assert(0);
+        }
+        tmp = tmp->next;
+    }
+    
 }

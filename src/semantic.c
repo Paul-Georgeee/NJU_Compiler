@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "tree.h"
 #include "semantic.h"
+#include "IRGenerator.h"
 #define HASHSIZE 0x3fff
 
 struct Symbol *nowFunc = NULL;
@@ -706,7 +707,10 @@ void traverseForStmt(struct TreeNode *p)
 {
     struct TreeNode *firstChild = p->child;
     if (strcmp(firstChild->name, "Exp") == 0)
+    {
         traverseForExp(firstChild);
+        translateExp(firstChild, NULL);
+    }
     else if (strcmp(firstChild->name, "RETURN") == 0)
     {
         traverseForExp(firstChild->next);
@@ -854,9 +858,29 @@ void traverseForExtDef(struct TreeNode *p)
         return;
 }
 
+void initSymbolTable()
+{
+    struct Symbol *s = (struct Symbol *)malloc(sizeof(struct Symbol));
+    s->name = "read";
+    s->flag = S_FUNC;
+    s->func.returnType = &_int;
+    s->func.args = NULL;
+    insert(s);
+    
+    s = (struct Symbol *)malloc(sizeof(struct Symbol));
+    s->name = "write";
+    s->flag = S_FUNC;
+    s->func.returnType =  &_int;
+    s->func.args = (struct FieldList *)malloc(sizeof(struct FieldList));
+    s->func.args->next = NULL;
+    s->func.args->type = &_int;
+    s->func.args->name = "value";
+    insert(s);
+}
 void traverse()
 {   
     memset((void *)&s, 0, sizeof(struct SymbolStack));
+    initSymbolTable();
     struct TreeNode *extDefList = root->child;
     while (extDefList != NULL)
     {

@@ -2,6 +2,7 @@
     "files.associations": {
         "stdio.h": "c",
         "stdlib.h": "c",
-        "semantic.h": "c"
+        "semantic.h": "c",
+        "typeinfo": "c"
     }
 }
