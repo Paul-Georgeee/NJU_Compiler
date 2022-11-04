@@ -95,10 +95,15 @@ TYPE int|float
     sscanf(yytext, "%s", yylval->value.type_str);
     return ID;
     }
+{RELOP} {
+    has_error = 0;
+    yylval = init_node("RELOP", yylineno);
+    sscanf(yytext, "%s", yylval->value.type_str);
+    return RELOP;
+    }
 {SEMI} { INITTOKEN_NOVAL(SEMI, yylineno)}
 {COMMA} { INITTOKEN_NOVAL(COMMA, yylineno)}
 {ASSIGNOP} { INITTOKEN_NOVAL(ASSIGNOP, yylineno)}
-{RELOP} { INITTOKEN_NOVAL(RELOP, yylineno)}
 {PLUS} { INITTOKEN_NOVAL(PLUS, yylineno)}
 {MINUS} { INITTOKEN_NOVAL(MINUS, yylineno)}
 {STAR} { INITTOKEN_NOVAL(STAR, yylineno)}

@@ -1,0 +1,47 @@
+int main(int argn, int args[10])
+{
+    int i, j, k;
+    i = 1;
+    j = 2 + 2;
+    k = i + j + 2 * i;
+    argn = i + j + k;
+}
+
+int func(int j)
+{
+    int k;
+    int i; 
+    k = 2 / 3 + 4 / 5;
+    i = k * 9;
+
+    j = k - i;
+}
+
+int relop()
+{
+    int j, k;
+    j = 1;
+    k = 0;
+    j = (j - k) > (k - j) && !(j + k);
+    k = func(j + k);
+}
+
+int ifstmt()
+{
+    int i, j;
+    i = 10;
+    j = 0;
+    if(i > j)
+    {
+        i = j + 10;
+    }
+    else
+    {
+        j = i + 10;
+    }
+    
+    while(i != j)
+    {
+        i = j - 1;
+    }
+}

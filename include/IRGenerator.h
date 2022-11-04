@@ -1,5 +1,6 @@
+enum OperandKind {BASCIVAR, REFVAR, CONSTANT_INT, CONSTANT_FLOAT, ADDRESS, LABEL, FUNC};
 struct Operand{
-    enum OperandKind {BASCIVAR, REFVAR, CONSTANT_INT, CONSTANT_FLOAT, ADDRESS, LABEL, FUNC} kind;
+    enum OperandKind kind;
     union {
         int constantValueInt;
         float constantValueFloat;
@@ -28,7 +29,7 @@ enum InterCodeKind{
         WRITE
 };
 
-
+enum RELOP {EQ, NE, LT, GT, LE, GE};  // == != < > <= >=
 struct InterCode{
     enum InterCodeKind kind;    
     union 
@@ -38,7 +39,7 @@ struct InterCode{
         struct {struct Operand* op;} noresult; //include LABEL x, FUNCTION f, GOTO x, RETURN x, ARG x, PARAM x, READ x, WRITE x 
         struct {
             struct Operand* result, *op1, *op2;
-            enum RELOP {EQ, NE, LT, GT, LE, GE} relop; // == != < > <= >=
+            enum RELOP relop; 
         } ifop;
     };
     
@@ -60,7 +61,12 @@ struct InterCode* genNoresult(enum InterCodeKind k, struct Operand* op);
 
 struct Operand* genConstInt(int value);
 struct Operand* genConstFloat(float value);
-struct Operand* genBasicVariable(char *name);
+struct Operand* genVariable(char *name, enum OperandKind k);
 
 void translateExp(struct TreeNode* exp, struct Operand* place);
 void translateCond(struct TreeNode* exp, struct Operand* labelTrue, struct Operand *labelFalse);
+void translateFunDec(struct TreeNode *fundec);
+void translateCompst(struct TreeNode *compst);
+void translateDef(struct TreeNode* def);
+void translateStmt(struct TreeNode *stmt);
+void printIR(FILE *fp);

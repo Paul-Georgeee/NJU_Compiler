@@ -6,7 +6,7 @@
 #include "semantic.h"
 #include "IRGenerator.h"
 #define HASHSIZE 0x3fff
-
+int wrong;
 struct Symbol *nowFunc = NULL;
 struct SymbolStack symbolStack;
 struct Symbol hashtable[HASHSIZE] = {};
@@ -97,6 +97,7 @@ struct Type * copyType(struct Type *t)
 
 void semanticError(int type, int line, char *description)
 {
+    wrong = 1;
     printf("Error type %d at Line %d: %s\n", type, line, description);
 }
 //1:equal 0:not equal
@@ -267,6 +268,7 @@ struct Symbol *traverseForVarDec(struct TreeNode *p, struct Type *t)
 
     assert(strcmp(vardec->child->name, "ID") == 0);
     struct Symbol *s = (struct Symbol *)malloc(sizeof(struct Symbol));
+    memset(s, 0, sizeof(struct Symbol));
     s->flag = S_VAR;
     s->name = vardec->child->value.type_str;
     s->var = tmp1;
@@ -418,6 +420,7 @@ struct Type *traverseForSpecifier(struct TreeNode *p)
         {
             int flag = strcmp(structTag->name, "OptTag");
             struct Symbol *symbol = (struct Symbol *)malloc(sizeof(struct Symbol));
+            memset(symbol, 0, sizeof(struct Symbol));
             symbol->structure = NULL;
             //To handle the var scope. Because the sturct name and the sturct member name not in the same scope
             //So I first insert the struct name to symbol table then traverse the field list
@@ -507,7 +510,6 @@ void traverseForDefList(struct TreeNode *p)
         }
 
         freeType(t);
-
     }
 }
 
@@ -709,7 +711,6 @@ void traverseForStmt(struct TreeNode *p)
     if (strcmp(firstChild->name, "Exp") == 0)
     {
         traverseForExp(firstChild);
-        translateExp(firstChild, NULL);
     }
     else if (strcmp(firstChild->name, "RETURN") == 0)
     {
@@ -739,6 +740,7 @@ void traverseForStmt(struct TreeNode *p)
     }
     else if (strcmp(firstChild->name, "CompSt") == 0)
         traverseForCompSt(firstChild, 1);
+
 }
 
 //isPush: handly the scope. If isPush == 1, stack push
@@ -763,6 +765,7 @@ void traverseForCompSt(struct TreeNode *p, int isPush)
         while (stmtlist != NULL)
         {
             traverseForStmt(stmtlist->child);
+            // translateStmt(stmtlist->child);
             stmtlist = stmtlist->child->next;
         }
     }
@@ -803,6 +806,7 @@ void traverseForExtDef(struct TreeNode *p)
     else if (strcmp("FunDec", tmp->name) == 0)
     {
         struct Symbol *s = (struct Symbol *)malloc(sizeof(struct Symbol));
+        memset(s, 0, sizeof(struct Symbol));
         s->name = tmp->child->value.type_str;
         s->flag = S_FUNC;
         s->func.returnType = t;
@@ -851,7 +855,11 @@ void traverseForExtDef(struct TreeNode *p)
         }
 
         if(flag == 0)
+        {   
+            translateFunDec(tmp);
             traverseForCompSt(tmp->next, 0);
+            translateCompst(tmp->next);
+        }
         pop();
     }
     else
@@ -861,13 +869,16 @@ void traverseForExtDef(struct TreeNode *p)
 void initSymbolTable()
 {
     struct Symbol *s = (struct Symbol *)malloc(sizeof(struct Symbol));
+    memset(s, 0, sizeof(struct Symbol));
     s->name = "read";
     s->flag = S_FUNC;
     s->func.returnType = &_int;
     s->func.args = NULL;
+    s->func.hasDef = 1;
     insert(s);
     
     s = (struct Symbol *)malloc(sizeof(struct Symbol));
+    memset(s, 0, sizeof(struct Symbol));
     s->name = "write";
     s->flag = S_FUNC;
     s->func.returnType =  &_int;
@@ -875,6 +886,7 @@ void initSymbolTable()
     s->func.args->next = NULL;
     s->func.args->type = &_int;
     s->func.args->name = "value";
+    s->func.hasDef = 1;
     insert(s);
 }
 void traverse()

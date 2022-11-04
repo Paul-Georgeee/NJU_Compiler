@@ -1,4 +1,3 @@
-
 struct Type{
     enum {BASIC, ARRAY, STRUCTURE} kind;
 
@@ -40,6 +39,7 @@ struct Symbol{
         struct FieldList * structure;       //struct member list
         
     };
+    char *IRName;                           //used for IR generate
     struct Symbol *hashLinkNext, *hashLinkbefore;   //doubly linked list in every hash backet
     struct Symbol *blockLinkNext;                   //linked list in the same scope
 };
