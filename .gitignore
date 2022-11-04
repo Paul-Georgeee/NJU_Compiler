@@ -6,4 +6,3 @@ lex.yy.c
 main
 Code/
 build/
-simulator/
