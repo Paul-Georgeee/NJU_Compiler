@@ -1,4 +1,6 @@
 enum OperandKind {BASCIVAR, REFVAR, CONSTANT_INT, CONSTANT_FLOAT, ADDRESS, LABEL, FUNC};
+//BASCIVAR: int float
+//REFVAR: struct array
 struct Operand{
     enum OperandKind kind;
     union {
