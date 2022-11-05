@@ -22,37 +22,40 @@ void insertIRList(struct InterCode * p)
     irList.tail = p;
 }
 
-struct InterCode* genUnaryop(enum InterCodeKind k, struct Operand* right, struct Operand* left)
+void genUnaryop(enum InterCodeKind k, struct Operand* right, struct Operand* left)
 {
     struct InterCode *p = (struct InterCode *)malloc(sizeof(struct InterCode));
     p->kind = k;
     p->unaryop.left = left;
     p->unaryop.right = right;
+    left->cnt++;
+    right->cnt++;
     insertIRList(p);
-    return p;
 }
 
-struct InterCode* genBinaryop(enum InterCodeKind k, struct Operand* result, struct Operand* op1, struct Operand* op2)
+void genBinaryop(enum InterCodeKind k, struct Operand* result, struct Operand* op1, struct Operand* op2)
 {
     struct InterCode *p = (struct InterCode *)malloc(sizeof(struct InterCode));
     p->kind = k;
     p->binaryop.result = result;
     p->binaryop.op1 = op1;
     p->binaryop.op2 = op2;
+    result->cnt++;
+    op1->cnt++;
+    op2->cnt++;
     insertIRList(p);
-    return p;
 }
 
-struct InterCode* genNoresult(enum InterCodeKind k, struct Operand* op)
+void genNoresult(enum InterCodeKind k, struct Operand* op)
 {
     struct InterCode *p = (struct InterCode *)malloc(sizeof(struct InterCode));
     p->kind = k;
     p->noresult.op = op;
+    op->cnt++;
     insertIRList(p);
-    return p;
 }
 
-struct InterCode* genIfop(struct Operand* result, struct Operand* op1, struct Operand* op2, char *relop)
+void genIfop(struct Operand* result, struct Operand* op1, struct Operand* op2, char *relop)
 {
     struct InterCode *p = (struct InterCode *)malloc(sizeof(struct InterCode));
     p->kind = IF;
@@ -74,9 +77,10 @@ struct InterCode* genIfop(struct Operand* result, struct Operand* op1, struct Op
         p->ifop.relop = GE;
     else 
         assert(0);
-
+    result->cnt++;
+    op1->cnt++;
+    op2->cnt++;
     insertIRList(p);
-    return p;
 }
 
 //return an operand for const int
@@ -85,6 +89,7 @@ struct Operand* genConstInt(int value)
     struct Operand *p = (struct Operand *)malloc(sizeof(struct Operand));
     p->kind = CONSTANT_INT;
     p->constantValueInt = value;
+    p->cnt = 0;
     return p;
 }
 
@@ -94,6 +99,7 @@ struct Operand* genConstFloat(float value)
     struct Operand *p = (struct Operand *)malloc(sizeof(struct Operand));
     p->kind = CONSTANT_FLOAT;
     p->constantValueFloat = value;
+    p->cnt = 0;
     return p;
 }
 
@@ -103,12 +109,15 @@ struct Operand* genVariable(char *name, enum OperandKind k)
     struct Operand *p = (struct Operand *)malloc(sizeof(struct Operand));
     p->kind = k;
     p->name = name;
+    p->cnt = 0;
     return p;
 }
 
-
+//Here 3 functions used to give a name for a var in IR
+//Funtion name will remain same as the source code
 char *genTempName()
 {
+    //get a name for temp val
     static int id = 0;
     char *name = (char *)malloc(100);
     strcpy(name, "t");
@@ -119,6 +128,7 @@ char *genTempName()
 
 char *genVarName(struct TreeNode *p)
 {
+    //get a name for var occured in source code
     struct Symbol * s = search(p->value.type_str);
     assert(s != NULL);
     if(s->IRName != NULL)
@@ -135,6 +145,7 @@ char *genVarName(struct TreeNode *p)
 
 char *genLabelName()
 {
+    //get a name for a label
     static int id = 0;
     char *name = (char *)malloc(100);
     strcpy(name, "l");
@@ -143,40 +154,54 @@ char *genLabelName()
     return name;
 }
 
-//Here Exp must a id or id.id or id[exp]
+//Used for Exp -> Exp1 ASSIGN Exp2, to determine what Exp1 is
+//Here Exp must be derived ID | Exp DOT ID | Exp LB Exp RB
 struct Operand * getLeftOperand(struct TreeNode *exp)
 {
     struct TreeNode *firstChild = exp->child, *secondChild = firstChild->next;
-    assert(strcmp(firstChild->name, "ID") == 0);
-    if(secondChild == NULL)
+    //Exp -> ID
+    if(strcmp(firstChild->name, "ID") == 0)
+    {
+        assert(secondChild == NULL);
         return genVariable(genVarName(firstChild), BASCIVAR);
-    //TODO()
+    }
     //array and struct
-
-    
-    return NULL;
+    //Exp -> Exp DOT ID | Exp LB Exp RB
+    else
+        return translateRef(exp);
 }
 
-enum InterCodeKind determineKind(struct Operand* right, struct Operand* left)
+//Here FieldList was a list which contains members of a struct
+//Calculate how much these member occupy
+int calculateStructField(struct FieldList *f)
 {
-    if(left->kind == BASCIVAR)
+    int ret = 0;
+    while(f != NULL)
     {
-        if(right->kind == CONSTANT_FLOAT || right->kind == CONSTANT_INT || right->kind == BASCIVAR)
-            return ASSIGN;
-        if(right->kind == ADDRESS)
-            return R_DEREF;
+        ret += calculateRefsize(f->type);
+        f = f->next;
     }
-    else if(left->kind == ADDRESS)
-    {
-        assert(right->kind == BASCIVAR && right->kind == CONSTANT_FLOAT && right->kind == CONSTANT_INT);
-        return L_DEREF;
-    }
+    return ret;
+}
+
+//Calculate how much a Type t occupies
+int calculateRefsize(struct Type *t)
+{
+    if(t->kind == BASIC)
+        return 4;
+    else if(t->kind == ARRAY)
+        return t->array.size * calculateRefsize(t->array.elem);
+    else if(t->kind == STRUCTURE)
+        return calculateStructField(t->structure.field);
     assert(0);
     return 0;
 }
 
+//Param isWriteFunc: used to indicate whether the func is write
+//Param formalArgs: the formal args of the called func
 void translateArgs(struct TreeNode* args, struct FieldList *formalArgs, int isWriteFunc)
 {
+    //specially handle the func write
     if(isWriteFunc == 1)
     {
         struct TreeNode* exp = args->child;
@@ -187,24 +212,33 @@ void translateArgs(struct TreeNode* args, struct FieldList *formalArgs, int isWr
     else
     {
         struct TreeNode* exp = args->child, *comma = exp->next;
-        struct TreeNode* child = exp->child;
         struct Operand* tmp = NULL;
+        //When the type of arg is array or struct
         if(formalArgs->type->kind != BASIC)
         {
-            //exp must be a struct(no nested struct) or 1-d array
-            assert(strcmp(child->name, "ID") == 0);
-            tmp = genVariable(genVarName(child), REFVAR);
+            tmp = genVariable(genTempName(), ADDRESS);
+            struct Operand * addr = translateRef(exp);
+            if(addr->kind == ADDRESS)
+                genUnaryop(ASSIGN, addr, tmp);
+            else
+                genUnaryop(REF, addr, tmp);
         }
+        //When the type of arg is int or float
         else
         {
             tmp = genVariable(genTempName(), BASCIVAR);
             translateExp(exp, tmp);
         }
+        //The order of the "ARG x" is opposite to the order of "PARAM x"
+        //So we should recursively handle the remain args first then generate the code "ARG x"
         if(comma != NULL)
             translateArgs(comma->next, formalArgs->next, 0);
         genNoresult(ARG, tmp);
     }
 }
+
+//Used to reverse a FieldList because in semantic analysis,
+//the order I store the member of the struct and the args of function is reversed
 struct FieldList* reverseList(struct FieldList* f)
 {
     struct FieldList * ret = copyFieldList(f);
@@ -220,6 +254,68 @@ struct FieldList* reverseList(struct FieldList* f)
     return now;
     
 }
+
+//Used to translate a ref type
+//Here exp must derived Exp DOT ID | Exp LB Exp RB | ID
+//Return a operand t whose var is the address of the ref type
+//Sepecially, if Exp -> ID, here will directly return a Operand t1 with kind "REFVAL".
+//And after that we use t2 = &t1.
+struct Operand * translateRef(struct TreeNode* exp)
+{
+    // Exp -> Exp DOT ID | Exp LB Exp RB | ID
+    struct TreeNode* firstChild = exp->child, *secondChild = firstChild->next;
+    if(strcmp(firstChild->name, "ID") == 0)
+    {
+        struct Symbol *s = search(firstChild->value.type_str);
+        assert(s->flag == S_VAR && s->var->kind != BASIC);
+        enum OperandKind k = s->refAddressFlag == 0 ? REFVAR : ADDRESS;
+        return genVariable(genVarName(firstChild), k);
+    }
+    else
+    {
+        struct Operand *father = translateRef(firstChild); //Base address
+        if(firstChild->value.typeForExp->kind == ARRAY)
+        {
+            assert(strcmp(secondChild->name, "LB") == 0);
+            struct Operand *tmp1 = genVariable(genTempName(), BASCIVAR), *tmp2 = genVariable(genTempName(), BASCIVAR);
+            int size = calculateRefsize(firstChild->value.typeForExp->array.elem);
+            //Exp1[Exp2]
+            //tmp1 = Exp2; tmp2 = tmp1 * size; ret = father + tmp2
+            translateExp(secondChild->next, tmp1);
+            genBinaryop(STAR, tmp2, genConstInt(size), tmp1);
+            struct Operand *ret = genVariable(genTempName(), ADDRESS);
+            genBinaryop(PLUS, ret, father, tmp2);
+            return ret;
+        }
+        else if(firstChild->value.typeForExp->kind == STRUCTURE)
+        {
+            struct FieldList *f = firstChild->value.typeForExp->structure.field;
+            assert(strcmp(secondChild->name, "DOT") == 0);
+            struct TreeNode* id = secondChild->next;
+
+            //Remember that the order of member is reversed
+            assert(f->name != NULL);
+            while(f != NULL && strcmp(f->name, id->value.type_str) != 0)
+            {
+                f = f->next;
+                assert(f->name != NULL);    
+            }
+            assert(f != NULL);
+
+            int size = calculateStructField(f->next);
+            if(size == 0 && father->kind == ADDRESS)
+                return father;
+            else
+            {
+                struct Operand* ret = genVariable(genTempName(), ADDRESS);
+                genBinaryop(PLUS, ret, father, genConstInt(size));
+                return ret;
+            }
+        }
+        assert(0);
+    }
+}
+
 void translateExp(struct TreeNode* exp, struct Operand* place)
 {
     assert(strcmp(exp->name, "Exp") == 0);
@@ -252,40 +348,38 @@ void translateExp(struct TreeNode* exp, struct Operand* place)
         }
         else
         {
-            //TODO(): func call
+            //func call
             struct Symbol * func = search(firstChild->value.type_str);
             struct TreeNode* args = firstChild->next->next;
             struct Operand* callfunc = genVariable(func->name, FUNC);
             assert(func != NULL);
+
+            if(place == NULL)
+                place = genVariable(genTempName(), BASCIVAR);
             if(strcmp(args->name, "Args") == 0)
             {
                 if(strcmp(func->name, "write") == 0)
                 {   
                     translateArgs(args, NULL, 1);
-                    if(place != NULL)
-                        genUnaryop(ASSIGN, genConstInt(0), place);
+                    genUnaryop(ASSIGN, genConstInt(0), place);
                     free(callfunc);
                 }
                 else
                 {
                     translateArgs(args, reverseList(func->func.args), 0);
-                    if(place != NULL)
-                        genUnaryop(FUNCALL, callfunc, place);
+                    genUnaryop(FUNCALL, callfunc, place);
                 }
             }
             else
             {
                 if(strcmp(func->name, "read") == 0)
                 {
-                    assert(place != NULL);
                     genNoresult(READ, place);
                     free(callfunc);
                 }
                 else
-                {
-                    if(place != NULL)
-                        genUnaryop(FUNCALL, callfunc, place);
-                }
+                    genUnaryop(FUNCALL, callfunc, place);
+                
             }
            
         }
@@ -293,13 +387,22 @@ void translateExp(struct TreeNode* exp, struct Operand* place)
     else if(strcmp(secondChild->name, "ASSIGNOP") == 0)
     {
         struct Operand* var = getLeftOperand(firstChild);
-        translateExp(secondChild->next, var);
+        if(var->kind == BASCIVAR)
+            translateExp(secondChild->next, var);
+        else
+        {
+            //struct or array, translated to "*t1 = t2"
+            assert(var->kind == ADDRESS);
+            struct Operand *tmp = genVariable(genTempName(), BASCIVAR);
+            translateExp(secondChild->next, tmp);
+            genUnaryop(L_DEREF, tmp, var);
+        }
         if(place != NULL)
             genUnaryop(ASSIGN, var, place);
     }
     else if(strcmp(secondChild->name, "RELOP") == 0 || strcmp(secondChild->name, "OR") == 0 || strcmp(secondChild->name, "AND") == 0 || strcmp(firstChild->name, "NOT") == 0)
     {
-        //TODO(): Condition Exp
+        //Condition Exp
         struct Operand *trueLabel = genVariable(genLabelName(), LABEL), *falseLabel = genVariable(genLabelName(), LABEL);
         struct Operand *falseVal = genConstInt(0), *trueVal = genConstInt(1);
         if(place != NULL)
@@ -310,10 +413,14 @@ void translateExp(struct TreeNode* exp, struct Operand* place)
             genUnaryop(ASSIGN, trueVal, place);
         genNoresult(LABELDEF, falseLabel);
     }
-    else if(strcmp(secondChild->name, "DOT") == 0)
+    else if(strcmp(secondChild->name, "DOT") == 0 || strcmp(secondChild->name, "LB") == 0)
     {
-        //TODO(): Struct Field Access
-        ;
+        //Struct Field Access, Array. Translated to "t1 = *t2"
+        if(place != NULL)
+        {
+            struct Operand *addr = translateRef(exp);
+            genUnaryop(R_DEREF, addr, place);
+        }
     }
     else if(strcmp(firstChild->name, "MINUS") == 0)
     {
@@ -348,7 +455,7 @@ void translateCond(struct TreeNode* exp, struct Operand* labelTrue, struct Opera
 {
     assert(strcmp("Exp", exp->name) == 0);
     struct TreeNode *firstChild = exp->child, *secondChild = firstChild->next;
-    if(strcmp(secondChild->name, "RELOP") == 0)
+    if(secondChild != NULL && strcmp(secondChild->name, "RELOP") == 0)
     {
         struct Operand *tmp1 = genVariable(genTempName(), BASCIVAR), *tmp2 = genVariable(genTempName(), BASCIVAR);
         translateExp(firstChild, tmp1);
@@ -358,14 +465,14 @@ void translateCond(struct TreeNode* exp, struct Operand* labelTrue, struct Opera
     }
     else if(strcmp(firstChild->name, "NOT") == 0)
         translateCond(secondChild, labelFalse, labelTrue);
-    else if(strcmp(secondChild->name, "AND") == 0)
+    else if(secondChild != NULL && strcmp(secondChild->name, "AND") == 0)
     {
         struct Operand *label = genVariable(genLabelName(), LABEL);
         translateCond(firstChild, label, labelFalse);
         genNoresult(LABELDEF, label);
         translateCond(secondChild->next, labelTrue, labelFalse);
     }
-    else if(strcmp(secondChild->name, "OR") == 0)
+    else if(secondChild != NULL && strcmp(secondChild->name, "OR") == 0)
     {
         struct Operand *label = genVariable(genLabelName(), LABEL);
         translateCond(firstChild, labelTrue, label);
@@ -381,15 +488,18 @@ void translateCond(struct TreeNode* exp, struct Operand* labelTrue, struct Opera
     }
 }
 
+//translate Function Declaration
 void translateFunDec(struct TreeNode *fundec)
 {
     assert(strcmp("FunDec", fundec->name) == 0);
     struct TreeNode* firstChild = fundec->child, *varlist = firstChild->next->next;
     genNoresult(FUNCDEF, genVariable(firstChild->value.type_str, FUNC));
     
+    //No args
     if(strcmp(varlist->name, "VarList") != 0)
         return;
 
+    //Handle Args List
     while(varlist != NULL)
     {
         struct TreeNode * param = varlist->child, *vardec = param->child->next;
@@ -404,11 +514,18 @@ void translateFunDec(struct TreeNode *fundec)
         
         struct Symbol *s  = search(id->value.type_str);
         assert(s != NULL);
-        enum OperandKind k = s->var->kind == BASIC ? BASCIVAR : ADDRESS;        
+        //If the type of args is struct or array, it must a addressS
+        enum OperandKind k = BASCIVAR;
+        if(s->var->kind != BASIC)
+        {
+            k = ADDRESS;
+            s->refAddressFlag = 1;
+        }
         genNoresult(PARAM, genVariable(genVarName(id), k));
     }
 }
 
+//Handle for the Defination of Var
 void translateDef(struct TreeNode* def)
 {
     assert(strcmp("Def", def->name) == 0);
@@ -423,28 +540,29 @@ void translateDef(struct TreeNode* def)
         
         struct TreeNode* vardec = dec->child;
         assert(strcmp("VarDec", vardec->name) == 0);
+        
         struct TreeNode* id = vardec->child;
-        struct Symbol *s = search(id->value.type_str);
-        if(vardec->next == NULL)
-        {
-            if(s->var->kind == STRUCTURE)
-            {
-                ;
-            }
-            else if(s->var->kind == ARRAY)
-            {
-                ;
-            }
-            continue;
-        }
         while (strcmp(id->name, "ID") != 0)
             id = id->child;
         
-        struct Operand *tmp = genVariable(genTempName(), BASCIVAR);
-        translateExp(vardec->next->next, tmp);
-        genUnaryop(ASSIGN, tmp, genVariable(genVarName(id), BASCIVAR));
+        struct Symbol *s = search(id->value.type_str);
+        if(s->var->kind != BASIC)
+        {
+            //struct or array, calculate the size and generate "DEC ref [size]"
+            s->refAddressFlag = 0;
+            struct Operand * size = genConstInt(calculateRefsize(s->var)), *ref = genVariable(genVarName(id), REFVAR);
+            genUnaryop(MALLOC, size, ref);
+        }
+        else
+        {
+            if(vardec->next == NULL)
+                continue;
+            //Hanle situation "Dec -> VarDec ASSIGNOP Exp"
+            struct Operand *tmp = genVariable(genTempName(), BASCIVAR);
+            translateExp(vardec->next->next, tmp);
+            genUnaryop(ASSIGN, tmp, genVariable(genVarName(id), BASCIVAR));
+        }
     }
-    
 }
 
 void translateCompst(struct TreeNode *compst)
@@ -472,6 +590,7 @@ void translateCompst(struct TreeNode *compst)
         }
     }
 }
+
 void translateStmt(struct TreeNode *stmt)
 {
     assert(strcmp("Stmt", stmt->name) == 0);
@@ -531,6 +650,9 @@ void printOperandName(struct Operand *op, FILE * fp)
         case CONSTANT_INT:
             fprintf(fp, "#%d", op->constantValueInt);
             break;
+        case REFVAR:
+            fprintf(fp, "&%s", op->name);
+            break;
         default:
             fprintf(fp, "%s", op->name);
             break;
@@ -539,18 +661,6 @@ void printOperandName(struct Operand *op, FILE * fp)
 
 #define PRINTBINARYOP(op)\
 {\
-    if(tmp->binaryop.result->kind == BASCIVAR)\
-    {\
-        assert(tmp->binaryop.op1->kind == BASCIVAR || tmp->binaryop.op1->kind == CONSTANT_INT || tmp->binaryop.op1->kind == CONSTANT_FLOAT);\
-        assert(tmp->binaryop.op2->kind == BASCIVAR || tmp->binaryop.op2->kind == CONSTANT_INT || tmp->binaryop.op2->kind == CONSTANT_FLOAT);\
-    }\
-    else if(tmp->binaryop.result->kind == ADDRESS)\
-    {\
-        assert(tmp->binaryop.op1->kind == ADDRESS || tmp->binaryop.op1->kind == CONSTANT_INT);\
-        assert(tmp->binaryop.op2->kind == ADDRESS || tmp->binaryop.op2->kind == CONSTANT_INT);\
-    }\
-    else\
-        assert(0);\
     fprintf(fp, "%s := ", tmp->binaryop.result->name);\
     printOperandName(tmp->binaryop.op1, fp);\
     fprintf(fp, op);\
@@ -625,12 +735,12 @@ void printIR(FILE *fp)
                 fprintf(fp, "RETURN %s\n", tmp->noresult.op->name);
                 break;
             case MALLOC:
-                assert(tmp->unaryop.left->kind == BASCIVAR && tmp->unaryop.right->kind == CONSTANT_INT);
+                assert(tmp->unaryop.left->kind == REFVAR && tmp->unaryop.right->kind == CONSTANT_INT);
                 fprintf(fp, "DEC %s %d\n", tmp->unaryop.left->name, tmp->unaryop.right->constantValueInt);
                 break;
             case ARG:
                 if(tmp->noresult.op->kind == REFVAR)
-                    fprintf(fp, "AGR &%s\n", tmp->noresult.op->name);
+                    fprintf(fp, "ARG &%s\n", tmp->noresult.op->name);
                 else
                 {
                     fprintf(fp, "ARG ");
@@ -661,5 +771,53 @@ void printIR(FILE *fp)
         }
         tmp = tmp->next;
     }
-    
+}
+
+void freeOperand(struct Operand *p)
+{
+    if(p->cnt == 0)
+    {   
+        if(p->kind != CONSTANT_FLOAT && p->kind != CONSTANT_INT)
+            free(p->name);
+        free(p);
+    }
+    else
+        p->cnt = p->cnt - 1;
+}
+void freeIRList()
+{
+    struct InterCode* tmp = irList.head->next;
+    while (tmp != irList.head)
+    {
+        struct InterCode *p = tmp;
+        tmp = tmp->next;
+        switch (p->kind)
+        {
+        case ASSIGN: case REF: case R_DEREF: case L_DEREF: case MALLOC: case FUNCALL: 
+            freeOperand(p->unaryop.left);
+            freeOperand(p->unaryop.right);
+            free(p);
+            break;
+        case PLUS: case MINUS: case STAR: case DIV:
+            freeOperand(p->binaryop.op1);
+            freeOperand(p->binaryop.op2);
+            freeOperand(p->binaryop.result);
+            free(p);
+            break;
+        case LABELDEF: case FUNCDEF: case GOTO: case RETURN: case ARG: case PARAM: case READ: case WRITE:
+            freeOperand(p->noresult.op);
+            free(p);
+            break;
+        case IF:
+            freeOperand(p->ifop.op1);
+            freeOperand(p->ifop.op2);
+            freeOperand(p->ifop.result);
+            free(p);
+            break;
+        default:
+            assert(0);
+            break;
+        }
+    }
+    free(tmp);
 }

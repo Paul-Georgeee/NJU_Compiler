@@ -39,6 +39,8 @@ struct Symbol{
         struct FieldList * structure;       //struct member list
         
     };
+    int refAddressFlag;                     //flag to indicate whether a var is address or ref, used for struct or array type in IR generate
+                                            //0--ref   1--address
     char *IRName;                           //used for IR generate
     struct Symbol *hashLinkNext, *hashLinkbefore;   //doubly linked list in every hash backet
     struct Symbol *blockLinkNext;                   //linked list in the same scope

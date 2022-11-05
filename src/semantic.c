@@ -40,24 +40,26 @@ struct Symbol *getStackTop()
 
 void push()
 {
-    symbolStack.tail = symbolStack.tail + 1;
-    symbolStack.stack[symbolStack.tail] = NULL;
+    return;
+    // symbolStack.tail = symbolStack.tail + 1;
+    // symbolStack.stack[symbolStack.tail] = NULL;
 }
 
 void pop()
 {
-    struct Symbol * s = symbolStack.stack[symbolStack.tail];
-    symbolStack.tail = symbolStack.tail - 1;
-    while(s != NULL)
-    {
-        struct Symbol *tmp = s;
-        s = s->blockLinkNext;
-        tmp->hashLinkbefore->hashLinkNext = tmp->hashLinkNext;
-        if(tmp->hashLinkNext != NULL)
-            tmp->hashLinkNext->hashLinkbefore = tmp->hashLinkbefore;
+    return;
+    // struct Symbol * s = symbolStack.stack[symbolStack.tail];
+    // symbolStack.tail = symbolStack.tail - 1;
+    // while(s != NULL)
+    // {
+    //     struct Symbol *tmp = s;
+    //     s = s->blockLinkNext;
+    //     tmp->hashLinkbefore->hashLinkNext = tmp->hashLinkNext;
+    //     if(tmp->hashLinkNext != NULL)
+    //         tmp->hashLinkNext->hashLinkbefore = tmp->hashLinkbefore;
     
-        freeSymbol(tmp);
-    }
+    //     freeSymbol(tmp);
+    // }
 }
 
 

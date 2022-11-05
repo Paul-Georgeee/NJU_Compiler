@@ -4,5 +4,6 @@
         "stdlib.h": "c",
         "semantic.h": "c",
         "typeinfo": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Enabled"
 }

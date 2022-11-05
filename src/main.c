@@ -30,7 +30,11 @@ int main(int argc, char ** argv)
     if(argc > 2)
         IRfp = fopen(argv[2], "w");
     if(wrong == 0)
+    {
         printIR(IRfp);
+        freeIRList();
+    }
+    
     freeTree(root);
     return 0;
 }

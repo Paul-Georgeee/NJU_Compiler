@@ -1,0 +1,11 @@
+int a(int p[2])
+{
+    return 0;
+}
+
+int main()
+{
+    int array[2][3][3];
+    a(array[1][2]);
+    return 0;
+}

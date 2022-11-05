@@ -6,6 +6,7 @@ struct Operand{
         float constantValueFloat;
         char *name;
     };
+    int cnt;    //used for avoiding memory leak
 };
 enum InterCodeKind{
         ASSIGN,
@@ -35,7 +36,7 @@ struct InterCode{
     union 
     {
         struct {struct Operand* right, *left;} unaryop; //include assign, reference(&), dereference(*)  DEC x [size], x := call f
-        struct {struct Operand* result, *op1, *op2;} binaryop; //include + - * / < > == <= >= != 
+        struct {struct Operand* result, *op1, *op2;} binaryop; //include + - * / 
         struct {struct Operand* op;} noresult; //include LABEL x, FUNCTION f, GOTO x, RETURN x, ARG x, PARAM x, READ x, WRITE x 
         struct {
             struct Operand* result, *op1, *op2;
@@ -55,18 +56,26 @@ struct IRList
 
 void initIRGenerator();
 void insertIRList(struct InterCode * p);
-struct InterCode* genUnaryop(enum InterCodeKind k, struct Operand* right, struct Operand* left);
-struct InterCode* genBinaryop(enum InterCodeKind k, struct Operand* result, struct Operand* op1, struct Operand* op2);
-struct InterCode* genNoresult(enum InterCodeKind k, struct Operand* op);
+
+void genUnaryop(enum InterCodeKind k, struct Operand* right, struct Operand* left);
+void genBinaryop(enum InterCodeKind k, struct Operand* result, struct Operand* op1, struct Operand* op2);
+void genNoresult(enum InterCodeKind k, struct Operand* op);
+void genIfop(struct Operand* result, struct Operand* op1, struct Operand* op2, char *relop);
 
 struct Operand* genConstInt(int value);
 struct Operand* genConstFloat(float value);
 struct Operand* genVariable(char *name, enum OperandKind k);
 
+void translateArgs(struct TreeNode* args, struct FieldList *formalArgs, int isWriteFunc);
 void translateExp(struct TreeNode* exp, struct Operand* place);
 void translateCond(struct TreeNode* exp, struct Operand* labelTrue, struct Operand *labelFalse);
 void translateFunDec(struct TreeNode *fundec);
 void translateCompst(struct TreeNode *compst);
 void translateDef(struct TreeNode* def);
 void translateStmt(struct TreeNode *stmt);
+struct Operand * translateRef(struct TreeNode* exp);
+
 void printIR(FILE *fp);
+void freeIRList();
+
+int calculateRefsize(struct Type *t);

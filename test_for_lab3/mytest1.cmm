@@ -1,4 +1,4 @@
-int main(int argn, int args[10])
+/*int main(int argn, int args[10])
 {
     int i, j, k;
     i = 1;
@@ -44,4 +44,17 @@ int ifstmt()
     {
         i = j - 1;
     }
+}*/
+
+struct Test{
+    int a;
+    float b;
+    int c[10];
+};
+int kk()
+{
+    struct Test d[10];
+    int a = d[0].c[1 + 2];
+    d[1].c[4] = a;
+    write(d[1].c[4]);
 }
