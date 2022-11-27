@@ -119,6 +119,8 @@ void regForDefVar(struct Operand *op, FILE *f, struct InterCode* nowCode)
     if(op->regIndex == NOTINREG)
     {
         int regIndex = allocateReg(f, nowCode);
+        assert(op->offsetByfp != NOTINMEM);
+        fprintf(f, "    lw %s, %d($fp)\n", regName[regIndex], op->offsetByfp);
         op->regIndex = regIndex;
         regs[regIndex].op = op;
     }
