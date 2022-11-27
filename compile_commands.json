@@ -1,40 +1,51 @@
 [
     {
         "arguments": [
-            "gcc",
+            "gcc-7",
             "-c",
             "-Wall",
-            "-O2",
             "-g",
             "-I./include",
             "-o",
-            "build/syntax.tab.o",
-            "build/syntax.tab.c"
+            "build/controlFlowGraph.o",
+            "src/controlFlowGraph.c"
         ],
         "directory": "/home/xyb/NJU_Compiler",
-        "file": "build/syntax.tab.c"
+        "file": "src/controlFlowGraph.c"
     },
     {
         "arguments": [
-            "gcc",
+            "gcc-7",
             "-c",
             "-Wall",
-            "-O2",
             "-g",
             "-I./include",
             "-o",
-            "build/IRGenerator.o",
-            "src/IRGenerator.c"
+            "build/mips.o",
+            "src/mips.c"
         ],
         "directory": "/home/xyb/NJU_Compiler",
-        "file": "src/IRGenerator.c"
+        "file": "src/mips.c"
     },
     {
         "arguments": [
-            "gcc",
+            "gcc-7",
             "-c",
             "-Wall",
-            "-O2",
+            "-g",
+            "-I./include",
+            "-o",
+            "build/semantic.o",
+            "src/semantic.c"
+        ],
+        "directory": "/home/xyb/NJU_Compiler",
+        "file": "src/semantic.c"
+    },
+    {
+        "arguments": [
+            "gcc-7",
+            "-c",
+            "-Wall",
             "-g",
             "-I./include",
             "-o",
@@ -46,17 +57,30 @@
     },
     {
         "arguments": [
-            "gcc",
+            "gcc-7",
             "-c",
             "-Wall",
-            "-O2",
             "-g",
             "-I./include",
             "-o",
-            "build/semantic.o",
-            "src/semantic.c"
+            "build/syntax.tab.o",
+            "build/syntax.tab.c"
         ],
         "directory": "/home/xyb/NJU_Compiler",
-        "file": "src/semantic.c"
+        "file": "build/syntax.tab.c"
+    },
+    {
+        "arguments": [
+            "gcc-7",
+            "-c",
+            "-Wall",
+            "-g",
+            "-I./include",
+            "-o",
+            "build/IRGenerator.o",
+            "src/IRGenerator.c"
+        ],
+        "directory": "/home/xyb/NJU_Compiler",
+        "file": "src/IRGenerator.c"
     }
 ]

@@ -1,7 +1,9 @@
-#include<stdio.h>
-#include"tree.h"
-#include"semantic.h"
-#include"IRGenerator.h"
+#include <stdio.h>
+#include "tree.h"
+#include "semantic.h"
+#include "IRGenerator.h"
+#include "controlFlowGraph.h"
+#include "mips.h"
 extern FILE* yyin;
 int wrong;
 void yyrestart(FILE * fp);
@@ -31,7 +33,9 @@ int main(int argc, char ** argv)
         IRfp = fopen(argv[2], "w");
     if(wrong == 0)
     {
-        printIR(IRfp);
+        printIR(IRfp, irList.head->next, irList.head);
+        // constructCFG(irList.head->next->next, irList.head);
+        genMips(irList.head->next, irList.head, stdout);
         freeIRList();
     }
     

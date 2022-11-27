@@ -2,9 +2,32 @@
 #include "tree.h"
 #include "semantic.h"
 #include "IRGenerator.h"
+#include "mips.h"
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+
+static int interCodeCnt = 0;
+static struct Operand varList;
+
+
+static void inserNewVar(struct Operand *var)
+{
+    var->next = varList.next;
+    varList.next = var;
+}
+static struct Operand *findVar(char *name)
+{
+    struct Operand* tmp = varList.next;
+    while (tmp != NULL)
+    {
+        if(strcmp(tmp->name, name) == 0)
+            return tmp;
+        tmp = tmp->next;
+    }
+    return NULL;
+}
+
 void initIRGenerator()
 {
     irList.head = (struct InterCode*)malloc(sizeof(struct InterCode));
@@ -25,9 +48,12 @@ void insertIRList(struct InterCode * p)
 void genUnaryop(enum InterCodeKind k, struct Operand* right, struct Operand* left)
 {
     struct InterCode *p = (struct InterCode *)malloc(sizeof(struct InterCode));
+    memset(p, 0, sizeof(struct InterCode));
     p->kind = k;
     p->unaryop.left = left;
     p->unaryop.right = right;
+    p->no = interCodeCnt;
+    interCodeCnt = interCodeCnt + 1;
     left->cnt++;
     right->cnt++;
     insertIRList(p);
@@ -36,10 +62,13 @@ void genUnaryop(enum InterCodeKind k, struct Operand* right, struct Operand* lef
 void genBinaryop(enum InterCodeKind k, struct Operand* result, struct Operand* op1, struct Operand* op2)
 {
     struct InterCode *p = (struct InterCode *)malloc(sizeof(struct InterCode));
+    memset(p, 0, sizeof(struct InterCode));
     p->kind = k;
     p->binaryop.result = result;
     p->binaryop.op1 = op1;
     p->binaryop.op2 = op2;
+    p->no = interCodeCnt;
+    interCodeCnt = interCodeCnt + 1;
     result->cnt++;
     op1->cnt++;
     op2->cnt++;
@@ -49,8 +78,11 @@ void genBinaryop(enum InterCodeKind k, struct Operand* result, struct Operand* o
 void genNoresult(enum InterCodeKind k, struct Operand* op)
 {
     struct InterCode *p = (struct InterCode *)malloc(sizeof(struct InterCode));
+    memset(p, 0, sizeof(struct InterCode));
     p->kind = k;
     p->noresult.op = op;
+    p->no = interCodeCnt;
+    interCodeCnt = interCodeCnt + 1;
     op->cnt++;
     insertIRList(p);
 }
@@ -58,10 +90,13 @@ void genNoresult(enum InterCodeKind k, struct Operand* op)
 void genIfop(struct Operand* result, struct Operand* op1, struct Operand* op2, char *relop)
 {
     struct InterCode *p = (struct InterCode *)malloc(sizeof(struct InterCode));
+    memset(p, 0, sizeof(struct InterCode));
     p->kind = IF;
     p->ifop.result = result;
     p->ifop.op1 = op1;
     p->ifop.op2 = op2;
+    p->no = interCodeCnt;
+    interCodeCnt = interCodeCnt + 1;
     
     if(strcmp("==", relop) == 0)
         p->ifop.relop = EQ;
@@ -87,6 +122,7 @@ void genIfop(struct Operand* result, struct Operand* op1, struct Operand* op2, c
 struct Operand* genConstInt(int value)
 {
     struct Operand *p = (struct Operand *)malloc(sizeof(struct Operand));
+    memset(p, 0, sizeof(struct Operand));
     p->kind = CONSTANT_INT;
     p->constantValueInt = value;
     p->cnt = 0;
@@ -97,6 +133,7 @@ struct Operand* genConstInt(int value)
 struct Operand* genConstFloat(float value)
 {
     struct Operand *p = (struct Operand *)malloc(sizeof(struct Operand));
+    memset(p, 0, sizeof(struct Operand));
     p->kind = CONSTANT_FLOAT;
     p->constantValueFloat = value;
     p->cnt = 0;
@@ -106,10 +143,20 @@ struct Operand* genConstFloat(float value)
 //return an operand for a var with kind k, k may be BASICVAR REFVAR ADDRESS LABEL FUNC
 struct Operand* genVariable(char *name, enum OperandKind k)
 {
-    struct Operand *p = (struct Operand *)malloc(sizeof(struct Operand));
+    struct Operand * p = findVar(name);
+    if(p != NULL)
+    {
+        assert(p->kind == k);
+        return p;
+    }
+    p = (struct Operand *)malloc(sizeof(struct Operand));
+    memset(p, 0, sizeof(struct Operand));
     p->kind = k;
     p->name = name;
     p->cnt = 0;
+    p->regIndex = NOTINREG;
+    p->offsetByfp = NOTINMEM;
+    inserNewVar(p);
     return p;
 }
 
@@ -362,7 +409,7 @@ void translateExp(struct TreeNode* exp, struct Operand* place)
                 {   
                     translateArgs(args, NULL, 1);
                     genUnaryop(ASSIGN, genConstInt(0), place);
-                    free(callfunc);
+                    // free(callfunc);
                 }
                 else
                 {
@@ -375,7 +422,7 @@ void translateExp(struct TreeNode* exp, struct Operand* place)
                 if(strcmp(func->name, "read") == 0)
                 {
                     genNoresult(READ, place);
-                    free(callfunc);
+                    //free(callfunc);
                 }
                 else
                     genUnaryop(FUNCALL, callfunc, place);
@@ -668,10 +715,10 @@ void printOperandName(struct Operand *op, FILE * fp)
     fprintf(fp, "\n");\
 }
 
-void printIR(FILE *fp)
+void printIR(FILE *fp, struct InterCode* begin, struct InterCode* end)
 {
-    struct InterCode *tmp = irList.head->next;
-    while (tmp != irList.head)
+    struct InterCode *tmp = begin;//irList.head->next;
+    while (tmp != end)//irList.head
     {
         switch(tmp->kind)
         {

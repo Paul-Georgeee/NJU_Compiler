@@ -1,6 +1,9 @@
 enum OperandKind {BASCIVAR, REFVAR, CONSTANT_INT, CONSTANT_FLOAT, ADDRESS, LABEL, FUNC};
 //BASCIVAR: int float
 //REFVAR: struct array
+
+#define NOTINREG -1
+#define NOTINMEM 0xffffffff
 struct Operand{
     enum OperandKind kind;
     union {
@@ -9,6 +12,16 @@ struct Operand{
         char *name;
     };
     int cnt;    //used for avoiding memory leak
+    struct Operand *next;
+
+    int regIndex;
+    int offsetByfp;
+
+    struct UseList{
+        int useOrDef; //1: used 0: def
+        struct InterCode* code;
+        struct UseList* next;
+    }useList;
 };
 enum InterCodeKind{
         ASSIGN,
@@ -47,6 +60,12 @@ struct InterCode{
     };
     
     struct InterCode *prev, *next;
+    
+    int no;
+    struct CFGInfo{
+        int firstInstr;
+        int basicBlockIndex;
+    }cfgInfo;
 };
 
 
@@ -77,7 +96,7 @@ void translateDef(struct TreeNode* def);
 void translateStmt(struct TreeNode *stmt);
 struct Operand * translateRef(struct TreeNode* exp);
 
-void printIR(FILE *fp);
+void printIR(FILE *fp, struct InterCode* begin, struct InterCode* end);
 void freeIRList();
 
 int calculateRefsize(struct Type *t);

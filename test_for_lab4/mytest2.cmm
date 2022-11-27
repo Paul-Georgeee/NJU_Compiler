@@ -1,0 +1,16 @@
+int fact(int nn)
+{
+    if(nn == 0)
+        return 1;
+    else
+        return nn * fact(nn - 1);
+}
+
+int main()
+{
+    int n = read();
+    int result = fact(n);    
+    write(result);
+    return 0;
+
+}

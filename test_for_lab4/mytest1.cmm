@@ -1,0 +1,14 @@
+int main()
+{
+    int n = read();
+    int result = 1;
+    while(n > 0)
+    {
+        result = result * n;
+        n = n - 1;
+    }
+    write(result);
+    return 0;
+    n = result;
+    result = result - 1;
+}

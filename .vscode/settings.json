@@ -3,7 +3,9 @@
         "stdio.h": "c",
         "stdlib.h": "c",
         "semantic.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "controlflowgraph.h": "c",
+        "irgenerator.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }
