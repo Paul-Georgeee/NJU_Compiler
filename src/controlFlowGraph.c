@@ -43,18 +43,22 @@ void addEntry()
 {
     cfg.enrtyIndex = cfg.nodeCnt;
     cfg.nodes[cfg.nodeCnt].begin = cfg.nodes[cfg.nodeCnt].end = NULL;
+    cfg.nodes[cfg.nodeCnt].statementCnt = 0;
     cfg.nodeCnt = cfg.nodeCnt + 1;
+    
 }
 
 void addExit()
 {
     cfg.exitIndex = cfg.nodeCnt;
     cfg.nodes[cfg.nodeCnt].begin = cfg.nodes[cfg.nodeCnt].end = NULL;
+    cfg.nodes[cfg.nodeCnt].statementCnt = 0;
     cfg.nodeCnt = cfg.nodeCnt + 1;
 }
 
-void addNode(struct InterCode *begin, struct InterCode *end)
+void addNode(struct InterCode *begin, struct InterCode *end, int count)
 {
+    cfg.nodes[cfg.nodeCnt].statementCnt = count;
     cfg.nodes[cfg.nodeCnt].begin = begin;
     cfg.nodes[cfg.nodeCnt].end = end;
     cfg.nodeCnt = cfg.nodeCnt + 1;
@@ -101,25 +105,41 @@ void constructCFG(struct InterCode *codeBegin, struct InterCode *codeEnd)
     }
 
     addEntry();
-    tmp = codeBegin;
-    struct InterCode* firstInstr = tmp;
-    tmp->cfgInfo.basicBlockIndex = cfg.nodeCnt;
-    while (tmp != codeEnd)
+    struct InterCode* firstInstr = NULL;
+    int cnt = 0;
+    for(tmp = codeBegin; tmp != codeEnd; tmp = tmp->next)
     {
-        assert(tmp->cfgInfo.firstInstr == 1);
-        tmp = tmp->next;
-        while(tmp != codeEnd && tmp->cfgInfo.firstInstr == 0)
+        if(tmp->cfgInfo.firstInstr == 1)
         {
-            tmp->cfgInfo.basicBlockIndex = cfg.nodeCnt;
-            tmp = tmp->next;
+            if(firstInstr != NULL)
+                addNode(firstInstr, tmp, cnt);
+            cnt = 0;
+            firstInstr = tmp;
+            if(tmp != codeBegin && tmp->prev->kind != GOTO && tmp->prev->kind != RETURN)
+                addEdge(tmp->prev, tmp);
         }
-        tmp->cfgInfo.basicBlockIndex = cfg.nodeCnt + 1;
-        addNode(firstInstr, tmp);
-        assert(tmp != codeBegin);
-        if(tmp != codeEnd && tmp->prev->kind != GOTO && tmp->prev->kind != RETURN)
-            addEdge(tmp->prev, tmp);
-        firstInstr = tmp;
+        cnt = cnt + 1;
+        tmp->cfgInfo.basicBlockIndex = cfg.nodeCnt;
     }
+    addNode(firstInstr, codeEnd, cnt);
+    
+    // while (tmp != codeEnd)
+    // {
+    //     assert(tmp->cfgInfo.firstInstr == 1);
+    //     tmp = tmp->next;
+    //     while(tmp != codeEnd && tmp->cfgInfo.firstInstr == 0)
+    //     {
+    //         tmp->cfgInfo.basicBlockIndex = cfg.nodeCnt;
+    //         tmp = tmp->next;
+    //     }
+    //     tmp->cfgInfo.basicBlockIndex = cfg.nodeCnt + 1;
+    //     addNode(firstInstr, tmp);
+    //     assert(tmp != codeBegin);
+    //     if(tmp != codeEnd && tmp->prev->kind != GOTO && tmp->prev->kind != RETURN)
+    //         addEdge(tmp->prev, tmp);
+    //     firstInstr = tmp;
+    // }
+
     addExit();
     
     for(int i = 0; i < cfg.edgeCnt; ++i)

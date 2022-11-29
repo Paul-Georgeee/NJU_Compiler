@@ -18,7 +18,6 @@ struct Operand{
     int offsetByfp;
 
     struct UseList{
-        int useOrDef; //1: used 0: def
         struct InterCode* code;
         struct UseList* next;
     }useList;
@@ -61,11 +60,13 @@ struct InterCode{
     
     struct InterCode *prev, *next;
     
+    int mallocAddr;
     int no;
     struct CFGInfo{
         int firstInstr;
         int basicBlockIndex;
     }cfgInfo;
+
 };
 
 

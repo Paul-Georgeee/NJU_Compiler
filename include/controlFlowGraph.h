@@ -1,6 +1,7 @@
 struct CFGNode{
     struct InterCode *begin;
     struct InterCode *end;
+    int statementCnt;
     struct AdjList{
         int index;
         struct AdjList *next;

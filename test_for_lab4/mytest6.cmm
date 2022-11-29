@@ -1,0 +1,41 @@
+int main()
+{
+    int a[10];
+    int i = 0, j = 0;
+    int tmp, index, min;
+    while(i < 10)
+    {
+        a[i] = read();
+        i = i + 1;
+    }
+    i = 0;
+    while(i < 9)
+    {
+        index = i;
+        min = a[i];
+        j = i + 1;
+        while(j < 10)
+        {
+            if(a[j] < min)
+            {
+                min = a[j];
+                index = j;
+            }
+            j = j + 1;
+        }
+        if(index != i)
+        {
+            tmp = a[i];
+            a[i] = a[index];
+            a[index] = tmp;
+        }
+        i = i + 1;
+    }
+    i = 0; 
+    while(i < 10)
+    {
+        write(a[i]);
+        i = i + 1;
+    }
+    return 0;
+}
