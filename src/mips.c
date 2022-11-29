@@ -660,16 +660,6 @@ void genMipsForFunc(struct InterCode* funcBegin, struct InterCode* funcEnd, FILE
 
     constructCFG(tmp, funcEnd);
     
-    while (tmp != funcEnd)
-    {
-        if(tmp->kind == RETURN)
-        {
-            if(tmp->next != funcEnd)
-                assert(tmp->next->cfgInfo.firstInstr == 1);
-        }
-        tmp = tmp->next;
-    }
-    
     for(int i = 0; i < cfg.nodeCnt; ++i)
     {
         struct InterCode * blockBegin = cfg.nodes[i].begin, *blockEnd = cfg.nodes[i].end;

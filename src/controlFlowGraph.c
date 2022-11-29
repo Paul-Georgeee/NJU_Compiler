@@ -123,23 +123,6 @@ void constructCFG(struct InterCode *codeBegin, struct InterCode *codeEnd)
     }
     addNode(firstInstr, codeEnd, cnt);
     
-    // while (tmp != codeEnd)
-    // {
-    //     assert(tmp->cfgInfo.firstInstr == 1);
-    //     tmp = tmp->next;
-    //     while(tmp != codeEnd && tmp->cfgInfo.firstInstr == 0)
-    //     {
-    //         tmp->cfgInfo.basicBlockIndex = cfg.nodeCnt;
-    //         tmp = tmp->next;
-    //     }
-    //     tmp->cfgInfo.basicBlockIndex = cfg.nodeCnt + 1;
-    //     addNode(firstInstr, tmp);
-    //     assert(tmp != codeBegin);
-    //     if(tmp != codeEnd && tmp->prev->kind != GOTO && tmp->prev->kind != RETURN)
-    //         addEdge(tmp->prev, tmp);
-    //     firstInstr = tmp;
-    // }
-
     addExit();
     
     for(int i = 0; i < cfg.edgeCnt; ++i)
