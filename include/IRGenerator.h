@@ -16,7 +16,7 @@ struct Operand{
 
     int regIndex;
     int offsetByfp;
-
+    int needLoad;
     struct UseList{
         struct InterCode* code;
         struct UseList* next;

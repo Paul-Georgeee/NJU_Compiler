@@ -98,28 +98,11 @@ int allocateReg(FILE *f, struct InterCode* nowCode)
     }
     assert(index != -1);
     assert(regs[usedForVar[index]].op->offsetByfp != NOTINMEM);
-    if(regs[usedForVar[index]].op->offsetByfp == NOTINMEM)
-    {
-        funcFrame.size += 4;
-        regs[usedForVar[index]].op->offsetByfp = -funcFrame.size;
-        fprintf(f, "    addi $sp, $sp, -4\n");
-    }
     fprintf(f, "    sw %s, %d($fp)\n", regName[usedForVar[index]], regs[usedForVar[index]].op->offsetByfp);
+    regs[usedForVar[index]].op->needLoad = 1;
     regs[usedForVar[index]].op->regIndex = NOTINREG;
     regs[usedForVar[index]].op = NULL;
     return usedForVar[index];
-}
-
-void regForDefVar(struct Operand *op, FILE *f, struct InterCode* nowCode)
-{
-    if(op->regIndex == NOTINREG)
-    {
-        int regIndex = allocateReg(f, nowCode);
-        assert(op->offsetByfp != NOTINMEM);
-        fprintf(f, "    lw %s, %d($fp)\n", regName[regIndex], op->offsetByfp);
-        op->regIndex = regIndex;
-        regs[regIndex].op = op;
-    }
 }
 
 int ensureReg(struct Operand *op, FILE *f, struct InterCode* nowCode)
@@ -129,7 +112,8 @@ int ensureReg(struct Operand *op, FILE *f, struct InterCode* nowCode)
         assert(op->offsetByfp != NOTINMEM);
         op->regIndex = allocateReg(f, nowCode);
         regs[op->regIndex].op = op;
-        fprintf(f, "    lw %s, %d($fp)\n", regName[op->regIndex], op->offsetByfp);
+        if(op->needLoad == 1)
+            fprintf(f, "    lw %s, %d($fp)\n", regName[op->regIndex], op->offsetByfp);
     }
     return op->regIndex;
 }
@@ -299,6 +283,7 @@ void saveVarToMem(FILE *f)
             {
                 assert(regs[index].op->offsetByfp != NOTINMEM);
                 fprintf(f, "    sw %s, %d($fp)\n", regName[index], regs[index].op->offsetByfp);
+                regs[index].op->needLoad = 1;
                 regs[index].op->regIndex = NOTINREG;
                 regs[index].op = NULL;
             }
@@ -317,7 +302,7 @@ void genMipsForStarAndDiv(struct InterCode *tmp, FILE *f)
     op1 = tmp->binaryop.op1;
     op2 = tmp->binaryop.op2;
     
-    regForDefVar(result, f, tmp);
+    ensureReg(result, f, tmp);
     if(op1->kind == CONSTANT_INT)
     {
         op1Reg = allocateReg(f, tmp);
@@ -355,7 +340,7 @@ void genMipsForPlusAndMinus(struct InterCode *tmp, FILE *f)
     op1 = tmp->binaryop.op1;
     op2 = tmp->binaryop.op2;
     
-    regForDefVar(result, f, tmp);
+    ensureReg(result, f, tmp);
     if(op1->kind == CONSTANT_INT)
     {
         op1Reg = allocateReg(f, tmp);
@@ -389,7 +374,7 @@ void genMipsForDeref(struct InterCode *tmp, FILE *f)
     int rightReg;
     left = tmp->unaryop.left;
     right = tmp->unaryop.right;
-    regForDefVar(left, f, tmp);
+    ensureReg(left, f, tmp);
     if(tmp->kind == R_DEREF)
         fprintf(f, "    lw %s, 0(%s)\n", regName[left->regIndex], regName[ensureReg(right, f, tmp)]);
     else
@@ -409,7 +394,7 @@ void genMipsForMalloc(struct InterCode *tmp, FILE *f)
 {
     struct Operand *left;
     left = tmp->unaryop.left;
-    regForDefVar(left, f, tmp);
+    ensureReg(left, f, tmp);
     fprintf(f, "    addi %s, $fp, %d\n", regName[left->regIndex], tmp->mallocAddr);
 }
 
@@ -422,6 +407,7 @@ static inline void saveArgReg(FILE *f)
         {
             assert(op->offsetByfp != NOTINMEM);
             fprintf(f, "    sw %s, %d($fp)\n", regName[i], op->offsetByfp);
+            op->needLoad = 1;
         }
     }
 }
@@ -471,7 +457,7 @@ struct InterCode * genMipsForFuncall(struct InterCode *argBegin, FILE *f)
     fprintf(f, "    jal %s\n", tmp->unaryop.right->name);
     if(argcnt > 4)
         fprintf(f, "    addi $sp, $sp, %d\n", (argcnt - 4) * 4);
-    regForDefVar(tmp->unaryop.left, f, tmp);
+    ensureReg(tmp->unaryop.left, f, tmp);
     fprintf(f, "    move %s, $v0\n", regName[tmp->unaryop.left->regIndex]);
     recoverArgReg(f);
     return tmp;
@@ -482,7 +468,7 @@ void genMipsForRead(struct InterCode *tmp, FILE *f)
     assert(tmp->kind == READ);
     saveVarToMem(f);
     fprintf(f, "    jal read\n");
-    regForDefVar(tmp->noresult.op, f, tmp);
+    ensureReg(tmp->noresult.op, f, tmp);
     fprintf(f, "    move %s, $v0\n", regName[tmp->noresult.op->regIndex]);
 }
 
@@ -521,7 +507,7 @@ struct InterCode * genMipsForSingle(struct InterCode *tmp, FILE *f)
         left = tmp->unaryop.left;
         right = tmp->unaryop.right;
 
-        regForDefVar(left, f, tmp);
+        ensureReg(left, f, tmp);
         if(right->kind == CONSTANT_INT)
             fprintf(f, "    li %s, %d\n", regName[left->regIndex], right->constantValueInt);
         else
@@ -568,6 +554,7 @@ static inline void allocateMemForVar(struct Operand *op)
         return;
     funcFrame.size += 4;
     op->offsetByfp = -funcFrame.size;
+    op->needLoad = 0;
 }
 
 void allocateMemForFunc(struct InterCode *funcBegin, struct InterCode *funcEnd)
@@ -624,11 +611,13 @@ void genMipsForFunc(struct InterCode* funcBegin, struct InterCode* funcEnd, FILE
             tmp->noresult.op->offsetByfp = NOTINMEM;
             regs[a0 + argCnt].contain = 1;
             regs[a0 + argCnt].op = tmp->noresult.op;
+            tmp->noresult.op->needLoad = 0;
         }
         else
         {
             tmp->noresult.op->regIndex = NOTINREG;
             tmp->noresult.op->offsetByfp = (argCnt - 3) * 4;
+            tmp->noresult.op->needLoad = 1;
         }
         argCnt = argCnt + 1;
         tmp = tmp->next;

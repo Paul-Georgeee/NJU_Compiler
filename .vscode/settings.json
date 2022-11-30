@@ -5,7 +5,8 @@
         "semantic.h": "c",
         "typeinfo": "c",
         "controlflowgraph.h": "c",
-        "irgenerator.h": "c"
+        "irgenerator.h": "c",
+        "mips.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }
